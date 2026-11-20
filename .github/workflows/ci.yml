@@ -22,6 +22,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - name: Validate CloudFormation/SAM template
+        run: pipx run cfn-lint infra/template.yaml
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:int

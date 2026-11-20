@@ -44,7 +44,6 @@ Globals:
     MemorySize: 256
     Timeout: 10
     Handler: index.handler
-    Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
     Environment:
       Variables:
         TABLE_NAME: !Ref Table
@@ -125,6 +124,7 @@ Resources:
   PostConfirmationFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/post-confirmation/
 
   PostConfirmationPermission:
@@ -155,6 +155,7 @@ Resources:
   ListParkingsFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/list-parkings/
       Events:
         Api:
@@ -164,6 +165,7 @@ Resources:
   GetParkingFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/get-parking/
       Events:
         Api:
@@ -173,6 +175,7 @@ Resources:
   CreateReservationFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/create-reservation/
       Environment:
         Variables:
@@ -187,6 +190,7 @@ Resources:
   CancelReservationFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/cancel-reservation/
       Events:
         Api:
@@ -196,6 +200,7 @@ Resources:
   MyReservationsFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/my-reservations/
       Events:
         Api:
@@ -205,6 +210,7 @@ Resources:
   AdminSpacesFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/admin-spaces/
       Events:
         Api:
@@ -214,6 +220,7 @@ Resources:
   AdminRatesFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/admin-rates/
       Events:
         Api:
@@ -223,6 +230,7 @@ Resources:
   AdminMetricsFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/admin-metrics/
       Events:
         Api:
@@ -232,6 +240,7 @@ Resources:
   SensorHttpFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/sensor-http/
       Environment:
         Variables:
@@ -245,6 +254,7 @@ Resources:
   SensorIotFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/sensor-iot/
 
   # Regla explícita (no evento SAM): también la crea AWS Emulator.
@@ -271,11 +281,13 @@ Resources:
   ExpireReservationFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/expire-reservation/
 
   SweepExpiredFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
       CodeUri: ../services/api/dist/sweep-expired/
       Events:
         EveryMinute:
