@@ -30,6 +30,17 @@ npm run emulator:smoke     # prueba de humo de toda la arquitectura
 
 ## 2. Desplegar en el Learner Lab
 
+### Presupuesto: USD 50 por cuenta de lab
+
+Si se agota el crédito, el lab se bloquea y se pueden perder los recursos. ParkFácil es serverless y
+cuesta menos de USD 1 en la semana (el barrido de cada minuto, unas 11.500 invocaciones, cuesta centavos).
+
+- Se despliega en **un solo lab** (el de Sebastian). Los demás usan la URL compartida.
+- No crear EC2, RDS, NAT Gateway, ElastiCache ni OpenSearch: cobran por hora aunque nadie los use.
+- No dejar el simulador de sensores corriendo horas; cada evento es una Lambda y escrituras en DynamoDB.
+- Revisar el saldo en Vocareum al iniciar cada sesión. Si pasa de USD 10, avisar al equipo.
+
+
 1. En Vocareum: **Start Lab** y luego **AWS Details → AWS CLI → Show**. Copia las credenciales en
    `~/.aws/credentials` (perfil `default`). Caducan con la sesión: repite este paso en cada sesión.
 2. Compila y empaqueta:
