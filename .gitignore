@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+.aws-sam/
+samconfig.local.toml
+.env
+.env.*
+!.env.example
+*.log
+*.rpm

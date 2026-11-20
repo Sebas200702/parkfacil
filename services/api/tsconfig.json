@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "aws-lambda"],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"],
+      "@domains/*": ["src/domains/*"],
+      "@handlers/*": ["src/handlers/*"],
+      "@tests/*": ["src/__tests__/*"]
+    }
+  },
+  "include": ["src", "vitest.config.ts", "build.mjs"]
+}

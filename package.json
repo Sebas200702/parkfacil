@@ -1,0 +1,27 @@
+{
+  "name": "parkfacil",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "services/*",
+    "tools/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:int": "npm run test:int --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "db:local": "docker run -d --rm --name parkfacil-dynamo -p 8000:8000 amazon/dynamodb-local:latest",
+    "emulator:start": "aws-emulator -t off",
+    "emulator:deploy": "tools/emulator/deploy.sh",
+    "emulator:smoke": "bash -c \"source tools/emulator/emulator-env.sh && npm run smoke -w @parkfacil/api\""
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.8"
+  }
+}
