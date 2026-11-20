@@ -82,7 +82,7 @@ cuesta menos de USD 1 en la semana (el barrido de cada minuto, unas 11.500 invoc
 | Reserva con ID token de Cognito | 201; segunda reserva 409 `ACTIVE_RESERVATION` |
 | Conductor en `/admin/espacios` | 403 |
 | `PUT /admin/tarifas` con otro `parqueaderoId` en el cuerpo | Cambia solo el parqueadero del token |
-| EventBridge Scheduler con `LabRole` | Programa el vencimiento (`ENABLED`) |
+| EventBridge Scheduler con `LabRole` | Vence la reserva sola: `venceEn` 17:35:55, `VENCIDA` a las 17:36:22; espacio liberado y programación borrada |
 | MQTT → regla IoT → Lambda | El espacio pasa a `OCUPADO` |
 
 Notas del lab:
