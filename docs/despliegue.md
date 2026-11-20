@@ -61,8 +61,9 @@ cuesta menos de USD 1 en la semana (el barrido de cada minuto, unas 11.500 invoc
      --parameter-overrides SensorApiKey=<clave-secreta> SesFrom=<correo-verificado-o-vacío>
    ```
 
-   Parámetros: `UseScheduler=false` si EventBridge Scheduler no acepta `LabRole`
-   (el barrido por minuto vence las reservas igual); `DeployFrontend=false` si CloudFront está bloqueado.
+   En el Learner Lab hay que agregar `DeployFrontend=false`: el lab bloquea
+   `cloudfront:CreateOriginAccessControl` (y también las OAI), así que S3 + CloudFront no se puede crear.
+   `UseScheduler=false` solo si EventBridge Scheduler no acepta `LabRole` (en el lab sí lo acepta).
 4. Carga los datos de demostración:
 
    ```bash
@@ -72,6 +73,25 @@ cuesta menos de USD 1 en la semana (el barrido de cada minuto, unas 11.500 invoc
    ```
 
 5. Simula sensores: `TABLE_NAME=$(out TableName) PARQUEADERO=centro-93 npm run sensor-sim`.
+
+### Resultado verificado en el lab (2026-11-20)
+
+| Prueba | Resultado |
+|---|---|
+| `POST /reservas` sin token | 401 `{"message":"Unauthorized"}` del autorizador JWT |
+| Reserva con ID token de Cognito | 201; segunda reserva 409 `ACTIVE_RESERVATION` |
+| Conductor en `/admin/espacios` | 403 |
+| `PUT /admin/tarifas` con otro `parqueaderoId` en el cuerpo | Cambia solo el parqueadero del token |
+| EventBridge Scheduler con `LabRole` | Programa el vencimiento (`ENABLED`) |
+| MQTT → regla IoT → Lambda | El espacio pasa a `OCUPADO` |
+
+Notas del lab:
+
+- CloudShell no llega al endpoint de datos de IoT (`aws iot-data publish` falla al conectar).
+  Para publicar mensajes usa **IoT Core → MQTT test client** en la consola, o el simulador con
+  `MODO=http API_URL=<ApiUrl> SENSOR_API_KEY=<clave>`.
+- La terminal de CloudShell a veces deja de refrescar: recarga la página y, si el prompt no vuelve, presiona Ctrl+C.
+- Frontend: CloudFront está bloqueado. Alternativas a probar: hosting estático de S3 (HTTP) o Amplify Hosting.
 
 ## 3. Datos para el frontend
 
