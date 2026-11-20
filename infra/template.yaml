@@ -1,0 +1,363 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ParkFácil MVP. Diseñada para AWS Academy Learner Lab (Vocareum): no crea roles IAM,
+  todos los servicios usan el rol existente LabRole.
+
+Parameters:
+  LabRoleName:
+    Type: String
+    Default: LabRole
+    Description: Rol IAM existente del laboratorio (no se pueden crear roles).
+  SesFrom:
+    Type: String
+    Default: ''
+    Description: Remitente verificado en SES. Vacío = sin correos.
+  SensorApiKey:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: Clave del endpoint POST /sensores/eventos. Vacío = endpoint deshabilitado.
+  UseScheduler:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Programar el vencimiento exacto con EventBridge Scheduler (el barrido por minuto siempre corre).
+  DeployFrontend:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Crear S3 + CloudFront para el frontend.
+  AllowedOrigin:
+    Type: String
+    Default: '*'
+    Description: Origen permitido por CORS (la URL de CloudFront en la entrega final).
+
+Conditions:
+  WithScheduler: !Equals [!Ref UseScheduler, 'true']
+  WithFrontend: !Equals [!Ref DeployFrontend, 'true']
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures: [x86_64]
+    MemorySize: 256
+    Timeout: 10
+    Handler: index.handler
+    Role: !Sub arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref Table
+        NODE_OPTIONS: --enable-source-maps
+
+Resources:
+  # ---------- Datos ----------
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: PK, AttributeType: S }
+        - { AttributeName: SK, AttributeType: S }
+        - { AttributeName: GSI1PK, AttributeType: S }
+        - { AttributeName: GSI1SK, AttributeType: S }
+        - { AttributeName: GSI2PK, AttributeType: S }
+        - { AttributeName: GSI2SK, AttributeType: S }
+      KeySchema:
+        - { AttributeName: PK, KeyType: HASH }
+        - { AttributeName: SK, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - { AttributeName: GSI1PK, KeyType: HASH }
+            - { AttributeName: GSI1SK, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+        - IndexName: GSI2
+          KeySchema:
+            - { AttributeName: GSI2PK, KeyType: HASH }
+            - { AttributeName: GSI2SK, KeyType: RANGE }
+          Projection: { ProjectionType: ALL }
+      TimeToLiveSpecification:
+        AttributeName: expiraEn
+        Enabled: true
+
+  # ---------- Autenticación ----------
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-usuarios
+      UsernameAttributes: [email]
+      AutoVerifiedAttributes: [email]
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireUppercase: false
+          RequireSymbols: false
+      Schema:
+        - Name: parqueaderoId
+          AttributeDataType: String
+          Mutable: true
+      # Trigger explícito (no evento SAM): también lo crea AWS Emulator.
+      LambdaConfig:
+        PostConfirmation: !GetAtt PostConfirmationFunction.Arn
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: web
+      GenerateSecret: false
+      ExplicitAuthFlows: [ALLOW_USER_SRP_AUTH, ALLOW_USER_PASSWORD_AUTH, ALLOW_REFRESH_TOKEN_AUTH]
+      PreventUserExistenceErrors: ENABLED
+      # Los usuarios no pueden escribir custom:parqueaderoId: solo un administrador lo asigna.
+      WriteAttributes: [email, name]
+
+  ConductorGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties: { UserPoolId: !Ref UserPool, GroupName: conductor }
+
+  AdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties: { UserPoolId: !Ref UserPool, GroupName: admin }
+
+  PostConfirmationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/post-confirmation/
+
+  PostConfirmationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PostConfirmationFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
+
+  # ---------- API ----------
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref AllowedOrigin]
+        AllowHeaders: [authorization, content-type]
+        AllowMethods: [GET, POST, PUT, DELETE, OPTIONS]
+      Auth:
+        DefaultAuthorizer: Cognito
+        Authorizers:
+          Cognito:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+              audience: [!Ref UserPoolClient]
+
+  ListParkingsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/list-parkings/
+      Events:
+        Api:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: GET, Path: '/parqueaderos', Auth: { Authorizer: NONE } }
+
+  GetParkingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/get-parking/
+      Events:
+        Api:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: GET, Path: '/parqueaderos/{id}', Auth: { Authorizer: NONE } }
+
+  CreateReservationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/create-reservation/
+      Environment:
+        Variables:
+          SES_FROM: !Ref SesFrom
+          SCHEDULER_TARGET_ARN: !If [WithScheduler, !GetAtt ExpireReservationFunction.Arn, '']
+          SCHEDULER_ROLE_ARN: !If [WithScheduler, !Sub 'arn:aws:iam::${AWS::AccountId}:role/${LabRoleName}', '']
+      Events:
+        Api:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: '/reservas' }
+
+  CancelReservationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/cancel-reservation/
+      Events:
+        Api:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: DELETE, Path: '/reservas/{id}' }
+
+  MyReservationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/my-reservations/
+      Events:
+        Api:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: GET, Path: '/reservas/mias' }
+
+  AdminSpacesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/admin-spaces/
+      Events:
+        Api:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: GET, Path: '/admin/espacios' }
+
+  AdminRatesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/admin-rates/
+      Events:
+        Api:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: PUT, Path: '/admin/tarifas' }
+
+  AdminMetricsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/admin-metrics/
+      Events:
+        Api:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: GET, Path: '/admin/metricas' }
+
+  SensorHttpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/sensor-http/
+      Environment:
+        Variables:
+          SENSOR_API_KEY: !Ref SensorApiKey
+      Events:
+        Api:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: '/sensores/eventos', Auth: { Authorizer: NONE } }
+
+  # ---------- Sensores (IoT Core) ----------
+  SensorIotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/sensor-iot/
+
+  # Regla explícita (no evento SAM): también la crea AWS Emulator.
+  SensorTopicRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      TopicRulePayload:
+        AwsIotSqlVersion: '2016-03-23'
+        RuleDisabled: false
+        Sql: "SELECT *, topic(2) AS parqueaderoId, topic(4) AS espacioId FROM 'parkfacil/+/espacios/+'"
+        Actions:
+          - Lambda:
+              FunctionArn: !GetAtt SensorIotFunction.Arn
+
+  SensorTopicRulePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SensorIotFunction
+      Principal: iot.amazonaws.com
+      SourceArn: !GetAtt SensorTopicRule.Arn
+
+  # ---------- Vencimiento de reservas ----------
+  ExpireReservationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/expire-reservation/
+
+  SweepExpiredFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../services/api/dist/sweep-expired/
+      Events:
+        EveryMinute:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+
+  # ---------- Frontend ----------
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Condition: WithFrontend
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  FrontendOac:
+    Type: AWS::CloudFront::OriginAccessControl
+    Condition: WithFrontend
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub ${AWS::StackName}-oac
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Condition: WithFrontend
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        HttpVersion: http2
+        Origins:
+          - Id: web
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt FrontendOac.Id
+            S3OriginConfig: { OriginAccessIdentity: '' }
+        DefaultCacheBehavior:
+          TargetOriginId: web
+          ViewerProtocolPolicy: redirect-to-https
+          # Política administrada CachingOptimized.
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        # SPA: las rutas del frontend devuelven index.html.
+        CustomErrorResponses:
+          - { ErrorCode: 403, ResponseCode: 200, ResponsePagePath: '/index.html' }
+          - { ErrorCode: 404, ResponseCode: 200, ResponsePagePath: '/index.html' }
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: WithFrontend
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: { Service: cloudfront.amazonaws.com }
+            Action: s3:GetObject
+            Resource: !Sub ${FrontendBucket.Arn}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}
+
+Outputs:
+  ApiUrl:
+    Description: URL base de la API (VITE_API_URL del frontend).
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com
+  UserPoolId:
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
+  TableName:
+    Value: !Ref Table
+  IotTopic:
+    Description: Tópico donde publican los sensores.
+    Value: parkfacil/{parqueaderoId}/espacios/{espacioId}
+  FrontendBucketName:
+    Condition: WithFrontend
+    Value: !Ref FrontendBucket
+  FrontendUrl:
+    Condition: WithFrontend
+    Value: !Sub https://${FrontendDistribution.DomainName}
