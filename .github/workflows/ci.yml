@@ -6,7 +6,7 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Solo valida: el despliegue al Learner Lab es manual porque sus credenciales caducan.
+# Solo valida; el despliegue al Learner Lab está en deploy.yml.
 jobs:
   verify:
     runs-on: ubuntu-latest
