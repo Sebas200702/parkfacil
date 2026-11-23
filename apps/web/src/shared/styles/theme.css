@@ -1,0 +1,106 @@
+@import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque/opsz.css";
+@import "@fontsource-variable/martian-mono/index.css";
+
+/*
+ * ParkFácil Señalética. Fuente de verdad de los tokens: docs/sistema-de-diseno.md.
+ * Las escalas por defecto de Tailwind se apagan para que solo existan estos tokens.
+ */
+@theme {
+  --color-*: initial;
+  --color-brand-700: #3e149f;
+  --color-brand-600: #5522d6;
+  --color-brand-100: #e8e0fb;
+  --color-paint: #f2b705;
+  --color-asphalt-950: #16131f;
+  --color-asphalt-800: #2a2636;
+  --color-asphalt-600: #504b60;
+  --color-asphalt-400: #7f7a90;
+  --color-concrete-300: #cbc8d4;
+  --color-concrete-200: #e0dee7;
+  --color-concrete-100: #eeedf2;
+  --color-paper: #ffffff;
+  --color-status-free: #177a45;
+  --color-status-free-tint: #dcf1e4;
+  --color-status-free-on-dark: #4ad68a;
+  --color-status-held: #f2b705;
+  --color-status-held-ink: #6e4a00;
+  --color-status-held-tint: #fbefc9;
+  --color-status-taken: #bf3324;
+  --color-status-taken-tint: #f8e1dd;
+  --color-status-taken-on-dark: #f0705f;
+  --color-focus: #5522d6;
+
+  --font-sans: "Bricolage Grotesque Variable", "Trebuchet MS", system-ui, sans-serif;
+  --font-mono: "Martian Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --text-*: initial;
+  --text-display: 2.5rem;
+  --text-display--line-height: 2.625rem;
+  --text-display--font-weight: 800;
+  --text-display--letter-spacing: -0.02em;
+  --text-title: 1.75rem;
+  --text-title--line-height: 2rem;
+  --text-title--font-weight: 800;
+  --text-title--letter-spacing: -0.01em;
+  --text-heading: 1.25rem;
+  --text-heading--line-height: 1.625rem;
+  --text-heading--font-weight: 700;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.25rem;
+  --text-label--font-weight: 600;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.125rem;
+  --text-count: 3.25rem;
+  --text-count--line-height: 3.5rem;
+  --text-count--font-weight: 700;
+  --text-count--letter-spacing: -0.04em;
+  --text-figure: 1.25rem;
+  --text-figure--line-height: 1.5rem;
+  --text-figure--font-weight: 700;
+  --text-figure--letter-spacing: -0.02em;
+  --text-data: 0.875rem;
+  --text-data--line-height: 1.75rem;
+  --text-data--font-weight: 500;
+  --text-stencil: 0.6875rem;
+  --text-stencil--line-height: 1rem;
+  --text-stencil--font-weight: 700;
+  --text-stencil--letter-spacing: 0.06em;
+
+  --radius-*: initial;
+  --radius-bay: 2px;
+  --radius-plate: 6px;
+  --radius-card: 10px;
+
+  --shadow-*: initial;
+  --shadow-marker: 0 2px 6px rgb(22 19 31 / 0.3);
+  --shadow-sheet: 0 -4px 24px rgb(22 19 31 / 0.16);
+
+  --animate-dot: dot 1s steps(1) infinite;
+
+  @keyframes dot {
+    0%,
+    66% {
+      opacity: 0.3;
+    }
+    33% {
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-concrete-100);
+    color: var(--color-asphalt-950);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+}
