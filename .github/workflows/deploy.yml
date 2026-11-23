@@ -29,7 +29,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
         run: |
-          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SESSION_TOKEN" ]; then
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_SESSION_TOKEN" ]; then
             echo "::notice::Sin credenciales del lab en los secretos: despliegue omitido."
             echo "ready=false" >> "$GITHUB_OUTPUT"
             exit 0
@@ -63,18 +63,19 @@ jobs:
           aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null || aws s3 mb "s3://$BUCKET"
           aws cloudformation package --template-file infra/template.yaml --s3-bucket "$BUCKET" \
             --output-template-file packaged.yaml
-      # Los parámetros que no se pasan conservan su valor anterior en el stack.
+      # Los parámetros que no se pasan conservan su valor anterior en el stack; DeployFrontend se
+      # fuerza porque el primer despliegue manual del lab lo dejó en false (sin CloudFront).
       - name: Deploy stack
         env:
           FRONTEND_DOMAIN: ${{ vars.FRONTEND_DOMAIN }}
         run: |
-          PARAMS=()
+          PARAMS=(DeployFrontend=true)
           if [ -n "$FRONTEND_DOMAIN" ]; then
             PARAMS+=(FrontendDomain="$FRONTEND_DOMAIN" AllowedOrigin="https://$FRONTEND_DOMAIN")
           fi
           aws cloudformation deploy --template-file packaged.yaml --stack-name "$STACK_NAME" \
             --capabilities CAPABILITY_AUTO_EXPAND --no-fail-on-empty-changeset \
-            ${PARAMS:+--parameter-overrides "${PARAMS[@]}"}
+            --parameter-overrides "${PARAMS[@]}"
 
   frontend:
     needs: backend
@@ -93,8 +94,12 @@ jobs:
       - name: Read stack outputs
         id: stack
         run: |
-          out() { aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
-            --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text; }
+          aws cloudformation describe-stacks --stack-name "$STACK_NAME" > stack.json
+          out() { jq -r --arg k "$1" '.Stacks[0].Outputs[] | select(.OutputKey == $k) | .OutputValue' stack.json; }
+          if [ -z "$(out ApiUrl)" ] || [ -z "$(out FrontendBucketName)" ]; then
+            echo "::error::Faltan salidas del stack (ApiUrl o FrontendBucketName)."
+            exit 1
+          fi
           {
             echo "api=$(out ApiUrl)"
             echo "pool=$(out UserPoolId)"
@@ -118,10 +123,6 @@ jobs:
         env:
           BUCKET: ${{ steps.stack.outputs.bucket }}
         run: |
-          if [ -z "$BUCKET" ] || [ "$BUCKET" = "None" ]; then
-            echo "::error::El stack no tiene bucket de frontend (DeployFrontend=false)."
-            exit 1
-          fi
           # next export genera out/; Vite genera dist/.
           DIR=apps/web/out
           [ -d "$DIR" ] || DIR=apps/web/dist
