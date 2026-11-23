@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/dist", "!**/.aws-sam", "!docs"]
+    "includes": ["**", "!**/dist", "!**/.aws-sam", "!docs", "!**/*.svg"]
   },
   "formatter": {
     "enabled": true,
@@ -80,6 +80,11 @@
   "json": {
     "formatter": {
       "enabled": true
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "assist": {
