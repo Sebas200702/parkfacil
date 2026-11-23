@@ -1,5 +1,7 @@
+import { AdminRoute } from '@components/AdminRoute'
 import { AuthProvider, useAuth } from '@context/AuthContext'
 import { ParkingsScreen } from '@features/parkings/components/parkings-screen'
+import { AdminLayout } from '@pages/admin/AdminLayout'
 import { useHash } from '@shared/hooks/use-hash'
 import { useCallback, useState } from 'react'
 import { AppHeader } from './app-header'
@@ -12,11 +14,13 @@ const parseRoute = (hash: string): string => {
   if (clean === 'login') return '/login'
   if (clean === 'registro') return '/registro'
   if (clean === 'ui') return '#ui'
+  if (clean === 'admin' || clean.startsWith('admin/')) return `/${clean}`
 
   if (typeof window !== 'undefined') {
     const pathname = window.location.pathname.replace(/\/+$/, '')
     if (pathname === '/login') return '/login'
     if (pathname === '/registro') return '/registro'
+    if (pathname === '/admin' || pathname.startsWith('/admin/')) return pathname
   }
 
   return '/'
@@ -44,6 +48,12 @@ export const AppContent = () => {
       {currentRoute === '/' ? (
         <main>
           <ParkingsScreen />
+        </main>
+      ) : currentRoute.startsWith('/admin') ? (
+        <main className="mx-auto w-full max-w-4xl px-4 py-6">
+          <AdminRoute onNavigate={handleNavigate}>
+            <AdminLayout currentRoute={currentRoute} onNavigate={handleNavigate} />
+          </AdminRoute>
         </main>
       ) : (
         <main className="mx-auto w-full max-w-3xl px-4 py-6">

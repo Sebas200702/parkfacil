@@ -1,6 +1,7 @@
 import { useAuth } from '@context/AuthContext'
+import { isAdminUser } from '@lib/token'
 import { Button } from '@shared/ui/button'
-import { LogIn, LogOut, UserPlus } from 'lucide-react'
+import { LogIn, LogOut, Shield, UserPlus } from 'lucide-react'
 import type { MouseEvent } from 'react'
 
 /** Marca: una bahía con el cupo apartado en violeta. Mismo dibujo que public/favicon.svg. */
@@ -26,7 +27,8 @@ export interface AppHeaderProps {
 }
 
 export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
-  const { isAuthenticated, logout } = useAuth()
+  const { idToken, isAuthenticated, logout } = useAuth()
+  const isAdmin = isAdminUser(idToken)
 
   const handleBrandClick = (e: MouseEvent<HTMLAnchorElement>) => {
     if (onNavigate) {
@@ -53,6 +55,18 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
               Sistema de diseño
             </a>
           ) : null}
+
+          {isAdmin ? (
+            <Button
+              variant="secondary"
+              icon={Shield}
+              onClick={() => onNavigate?.('/admin')}
+              className="h-9 min-h-9 px-3 text-sm text-asphalt-950"
+            >
+              Administración
+            </Button>
+          ) : null}
+
           {isAuthenticated ? (
             <Button
               variant="secondary"
