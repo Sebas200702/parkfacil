@@ -1,0 +1,78 @@
+import { cx } from '@shared/utils/cx'
+import type { LucideIcon } from 'lucide-react'
+import type { ButtonHTMLAttributes } from 'react'
+
+export type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'danger'
+
+type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> & {
+  variant?: ButtonVariant
+  icon?: LucideIcon
+  block?: boolean
+  loading?: boolean
+  /** Rótulo mientras carga, en gerundio: "Reservando". */
+  loadingLabel?: string
+  submit?: boolean
+}
+
+const BASE =
+  'inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-plate border-2 font-bold leading-none transition-colors duration-100 ease-out focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus active:translate-y-px motion-reduce:transition-none'
+
+const VARIANTS: Record<ButtonVariant, string> = {
+  primary:
+    'border-transparent bg-brand-600 px-5 text-paper hover:bg-brand-700 aria-busy:bg-brand-700',
+  secondary: 'border-asphalt-950 bg-paper px-5 text-asphalt-950 hover:bg-concrete-100',
+  quiet: 'border-transparent px-3 text-brand-600 underline decoration-2 underline-offset-4',
+  danger: 'border-status-taken bg-paper px-5 text-status-taken hover:bg-status-taken-tint',
+}
+
+const DOTS = ['', '[animation-delay:0.33s]', '[animation-delay:0.66s]']
+
+const LoadingDots = () => (
+  <span aria-hidden="true" className="inline-flex gap-[3px]">
+    {DOTS.map((delay) => (
+      <i
+        key={delay}
+        className={cx('size-[5px] animate-dot bg-current motion-reduce:animate-none', delay)}
+      />
+    ))}
+  </span>
+)
+
+export const Button = ({
+  variant = 'primary',
+  icon: Icon,
+  block = false,
+  loading = false,
+  loadingLabel,
+  submit = false,
+  className,
+  children,
+  onClick,
+  ...rest
+}: ButtonProps) => (
+  <button
+    type={submit ? 'submit' : 'button'}
+    aria-busy={loading || undefined}
+    onClick={loading ? undefined : onClick}
+    className={cx(
+      BASE,
+      VARIANTS[variant],
+      block && 'w-full',
+      loading && 'cursor-progress',
+      className,
+    )}
+    {...rest}
+  >
+    {loading ? (
+      <>
+        {loadingLabel ?? children}
+        <LoadingDots />
+      </>
+    ) : (
+      <>
+        {Icon ? <Icon aria-hidden="true" size={20} /> : null}
+        {children}
+      </>
+    )}
+  </button>
+)
