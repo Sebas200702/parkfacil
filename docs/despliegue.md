@@ -125,3 +125,22 @@ El access token no sirve: no trae `email`, `custom:parqueaderoId` ni el `aud` qu
 
 Usuarios de demostración (contraseña `ParkFacil2026`): `conductor@parkfacil.test`,
 `admin.centro-93@parkfacil.test`, `admin.zona-t@parkfacil.test`, `admin.usaquen@parkfacil.test`.
+
+## 5. Despliegue automático (GitHub Actions)
+
+`.github/workflows/deploy.yml` corre después de cada merge a `main` (o a mano desde
+**Actions → Deploy → Run workflow**):
+
+| Job | Qué hace |
+|---|---|
+| `credentials` | Revisa los secretos. Sin secretos omite el despliegue; con credenciales caducadas falla con un aviso. |
+| `backend` | Empaqueta las Lambdas y despliega el stack `parkfacil` con CloudFormation. |
+| `frontend` | Lee las salidas del stack, compila `apps/web` con esas variables y sube el sitio con `aws s3 sync`. |
+
+Configuración del repositorio (**Settings → Secrets and variables → Actions**), solo el líder técnico:
+
+- Secretos `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` y `AWS_SESSION_TOKEN`: copiarlos de
+  **AWS Details → AWS CLI** en Vocareum al iniciar cada sesión del lab (caducan en ~4 h).
+- Variable `FRONTEND_DOMAIN` (ej. `app.<dominio>`): nombra el bucket y ajusta el CORS de la API.
+
+Las credenciales del lab dan acceso a toda la cuenta: no se comparten por chat; solo van a estos secretos.

@@ -1,0 +1,136 @@
+name: Deploy
+
+# Despliega al AWS Academy Learner Lab después de cada merge a main (o a mano).
+# Las credenciales del lab son temporales (~4 h): al iniciar cada sesión hay que copiar
+# AWS Details → AWS CLI a los secretos AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY y AWS_SESSION_TOKEN.
+# Si los secretos no existen el despliegue se omite; si caducaron, el job falla con un aviso claro.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-lab
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  STACK_NAME: parkfacil
+
+jobs:
+  credentials:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - id: check
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_SESSION_TOKEN" ]; then
+            echo "::notice::Sin credenciales del lab en los secretos: despliegue omitido."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! aws sts get-caller-identity --query Account --output text; then
+            echo "::error::Las credenciales del lab caducaron. Copia AWS Details → AWS CLI a los secretos y vuelve a ejecutar."
+            exit 1
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+  backend:
+    needs: credentials
+    if: needs.credentials.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Bundle Lambdas
+        run: npm run build -w @parkfacil/api
+      - name: Package template
+        run: |
+          BUCKET="parkfacil-artifacts-$(aws sts get-caller-identity --query Account --output text)"
+          aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null || aws s3 mb "s3://$BUCKET"
+          aws cloudformation package --template-file infra/template.yaml --s3-bucket "$BUCKET" \
+            --output-template-file packaged.yaml
+      # Los parámetros que no se pasan conservan su valor anterior en el stack; DeployFrontend se
+      # fuerza porque el primer despliegue manual del lab lo dejó en false (sin CloudFront).
+      - name: Deploy stack
+        env:
+          FRONTEND_DOMAIN: ${{ vars.FRONTEND_DOMAIN }}
+        run: |
+          PARAMS=(DeployFrontend=true)
+          if [ -n "$FRONTEND_DOMAIN" ]; then
+            PARAMS+=(FrontendDomain="$FRONTEND_DOMAIN" AllowedOrigin="https://$FRONTEND_DOMAIN")
+          fi
+          aws cloudformation deploy --template-file packaged.yaml --stack-name "$STACK_NAME" \
+            --capabilities CAPABILITY_AUTO_EXPAND --no-fail-on-empty-changeset \
+            --parameter-overrides "${PARAMS[@]}"
+
+  frontend:
+    needs: backend
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Read stack outputs
+        id: stack
+        run: |
+          aws cloudformation describe-stacks --stack-name "$STACK_NAME" > stack.json
+          out() { jq -r --arg k "$1" '.Stacks[0].Outputs[] | select(.OutputKey == $k) | .OutputValue' stack.json; }
+          if [ -z "$(out ApiUrl)" ] || [ -z "$(out FrontendBucketName)" ]; then
+            echo "::error::Faltan salidas del stack (ApiUrl o FrontendBucketName)."
+            exit 1
+          fi
+          {
+            echo "api=$(out ApiUrl)"
+            echo "pool=$(out UserPoolId)"
+            echo "client=$(out UserPoolClientId)"
+            echo "bucket=$(out FrontendBucketName)"
+            echo "url=$(out FrontendUrl)"
+            echo "website=$(out FrontendWebsiteUrl)"
+          } >> "$GITHUB_OUTPUT"
+      # Se exportan los nombres de Next.js y de Vite mientras se completa la migración a Next.js.
+      - name: Build web
+        env:
+          NEXT_PUBLIC_API_URL: ${{ steps.stack.outputs.api }}
+          NEXT_PUBLIC_AWS_REGION: ${{ env.AWS_REGION }}
+          NEXT_PUBLIC_COGNITO_USER_POOL_ID: ${{ steps.stack.outputs.pool }}
+          NEXT_PUBLIC_COGNITO_CLIENT_ID: ${{ steps.stack.outputs.client }}
+          VITE_API_URL: ${{ steps.stack.outputs.api }}
+          VITE_USER_POOL_ID: ${{ steps.stack.outputs.pool }}
+          VITE_USER_POOL_CLIENT_ID: ${{ steps.stack.outputs.client }}
+        run: npm run build -w @parkfacil/web
+      - name: Upload to S3
+        env:
+          BUCKET: ${{ steps.stack.outputs.bucket }}
+        run: |
+          # next export genera out/; Vite genera dist/.
+          DIR=apps/web/out
+          [ -d "$DIR" ] || DIR=apps/web/dist
+          aws s3 sync "$DIR" "s3://$BUCKET" --delete
+      - name: Summary
+        run: |
+          {
+            echo "### Despliegue"
+            echo "- API: ${{ steps.stack.outputs.api }}"
+            echo "- Sitio: ${{ steps.stack.outputs.url || steps.stack.outputs.website }}"
+          } >> "$GITHUB_STEP_SUMMARY"
