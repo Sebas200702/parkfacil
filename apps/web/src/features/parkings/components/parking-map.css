@@ -1,0 +1,30 @@
+/* Ajustes de Leaflet. Van sin capa y después de leaflet.css para poder sobrescribirlo. */
+
+.leaflet-container {
+  background: var(--color-concrete-200);
+  font-family: inherit;
+}
+
+/* Teselas en gris: las placas P son el único color del mapa. */
+.leaflet-tile-pane {
+  filter: grayscale(1) contrast(0.9) brightness(1.06);
+}
+
+/* La lista se monta 12 px sobre el mapa: la atribución de OpenStreetMap debe seguir visible. */
+.leaflet-container .leaflet-bottom {
+  margin-bottom: 12px;
+}
+
+.leaflet-container .leaflet-bar {
+  overflow: hidden;
+  border: 2px solid var(--color-asphalt-950);
+  border-radius: var(--radius-plate);
+  box-shadow: none;
+}
+
+.leaflet-container .leaflet-bar a {
+  width: 36px;
+  height: 36px;
+  color: var(--color-asphalt-950);
+  line-height: 36px;
+}
