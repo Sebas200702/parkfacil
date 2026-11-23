@@ -1,3 +1,8 @@
+import { useAuth } from '@context/AuthContext'
+import { Button } from '@shared/ui/button'
+import { LogIn, LogOut, UserPlus } from 'lucide-react'
+import type { MouseEvent } from 'react'
+
 /** Marca: una bahía con el cupo apartado en violeta. Mismo dibujo que public/favicon.svg. */
 const BrandMark = () => (
   <svg aria-hidden="true" viewBox="0 0 32 32" className="size-8 shrink-0">
@@ -13,16 +18,64 @@ const BrandMark = () => (
   </svg>
 )
 
-export const AppHeader = () => (
-  <header className="bg-asphalt-950 text-paper">
-    <div className="mx-auto flex h-14 w-full max-w-3xl items-center px-4">
-      <a
-        href="/"
-        className="inline-flex items-center gap-2.5 rounded-plate focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-paint"
-      >
-        <BrandMark />
-        <span className="text-heading font-extrabold tracking-tight">ParkFácil</span>
-      </a>
-    </div>
-  </header>
-)
+export interface AppHeaderProps {
+  onNavigate?: (route: string) => void
+}
+
+export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
+  const { isAuthenticated, logout } = useAuth()
+
+  const handleBrandClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (onNavigate) {
+      e.preventDefault()
+      onNavigate('/')
+    }
+  }
+
+  return (
+    <header className="bg-asphalt-950 text-paper">
+      <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between px-4">
+        <a
+          href="/"
+          onClick={handleBrandClick}
+          className="inline-flex items-center gap-2.5 rounded-plate focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-paint"
+        >
+          <BrandMark />
+          <span className="text-heading font-extrabold tracking-tight">ParkFácil</span>
+        </a>
+
+        <nav aria-label="Navegación de usuario" className="flex items-center gap-2">
+          {isAuthenticated ? (
+            <Button
+              variant="secondary"
+              icon={LogOut}
+              onClick={logout}
+              className="h-9 min-h-9 px-3 text-sm"
+            >
+              Cerrar sesión
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="quiet"
+                icon={LogIn}
+                onClick={() => onNavigate?.('/login')}
+                className="h-9 min-h-9 text-paper hover:text-concrete-200"
+              >
+                Iniciar sesión
+              </Button>
+              <Button
+                variant="primary"
+                icon={UserPlus}
+                onClick={() => onNavigate?.('/registro')}
+                className="h-9 min-h-9 px-3 text-sm"
+              >
+                Registrarse
+              </Button>
+            </>
+          )}
+        </nav>
+      </div>
+    </header>
+  )
+}

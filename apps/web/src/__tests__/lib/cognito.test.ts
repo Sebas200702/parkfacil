@@ -26,6 +26,7 @@ const {
     signOut: vi.fn(),
     confirmRegistration: vi.fn((_code, _force, callback) => callback(null, 'SUCCESS')),
     authenticateUser: vi.fn((_details, callbacks) => callbacks.onSuccess(mockSession)),
+    setAuthenticationFlowType: vi.fn(),
   }
 
   const mockSignUp = vi.fn((_username, _password, _attrs, _val, callback) =>
@@ -59,6 +60,7 @@ vi.mock('amazon-cognito-identity-js', () => {
     signOut = mockCurrentUser.signOut
     confirmRegistration = mockCurrentUser.confirmRegistration
     authenticateUser = mockCurrentUser.authenticateUser
+    setAuthenticationFlowType = mockCurrentUser.setAuthenticationFlowType
   }
 
   class MockAuthenticationDetails {
@@ -196,9 +198,10 @@ describe('Cognito Auth Module', () => {
   })
 
   describe('signIn', () => {
-    it('autentica credenciales y resuelve con la sesión y el ID Token', async () => {
+    it('configura el flujo USER_PASSWORD_AUTH antes de autenticar', async () => {
       const session = await signIn('conductor@parkfacil.com', 'Contrasena123!')
 
+      expect(mockCurrentUser.setAuthenticationFlowType).toHaveBeenCalledWith('USER_PASSWORD_AUTH')
       expect(mockCurrentUser.authenticateUser).toHaveBeenCalledTimes(1)
       expect(session.idToken).toBe('mock-id-token-12345')
       expect(mockSession.getIdToken).toHaveBeenCalled()

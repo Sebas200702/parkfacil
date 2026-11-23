@@ -27,17 +27,30 @@ export interface SignInSession extends CognitoUserSession {
   idToken: string
 }
 
+let userPoolInstance: CognitoUserPool | null = null
+
 export const getUserPool = (): CognitoUserPool => {
-  const userPoolId = import.meta.env.VITE_USER_POOL_ID ?? ''
-  const clientId = import.meta.env.VITE_USER_POOL_CLIENT_ID ?? ''
-  return new CognitoUserPool({
+  if (userPoolInstance) {
+    return userPoolInstance
+  }
+
+  const userPoolId = import.meta.env.VITE_USER_POOL_ID || 'dummy_user_pool_id'
+  const clientId = import.meta.env.VITE_USER_POOL_CLIENT_ID || 'dummy_client_id'
+
+  userPoolInstance = new CognitoUserPool({
     UserPoolId: userPoolId,
     ClientId: clientId,
   })
+
+  return userPoolInstance
 }
 
 export const getCurrentUser = (): CognitoUser | null => {
-  return getUserPool().getCurrentUser()
+  try {
+    return getUserPool().getCurrentUser()
+  } catch {
+    return null
+  }
 }
 
 export const signUp = (
@@ -122,6 +135,8 @@ export const signIn = (
     Pool: pool,
   })
 
+  user.setAuthenticationFlowType('USER_PASSWORD_AUTH')
+
   return new Promise((resolve, reject) => {
     user.authenticateUser(authenticationDetails, {
       onSuccess: (session) => {
@@ -141,9 +156,13 @@ export const signIn = (
 }
 
 export const signOut = (): void => {
-  const pool = getUserPool()
-  const user = pool.getCurrentUser()
-  user?.signOut()
+  try {
+    const pool = getUserPool()
+    const user = pool.getCurrentUser()
+    user?.signOut()
+  } catch {
+    // Ignore error if pool cannot be reached
+  }
 }
 
 /**
@@ -152,22 +171,26 @@ export const signOut = (): void => {
  * nunca el access token.
  */
 export const getCurrentIdToken = (): Promise<string | null> => {
-  const pool = getUserPool()
-  const user = pool.getCurrentUser()
+  try {
+    const pool = getUserPool()
+    const user = pool.getCurrentUser()
 
-  if (!user) {
+    if (!user) {
+      return Promise.resolve(null)
+    }
+
+    return new Promise((resolve) => {
+      user.getSession((err: Error | null, session: CognitoUserSession | null) => {
+        if (err || !session || !session.isValid()) {
+          resolve(null)
+          return
+        }
+        // OBLIGATORIO: extraer y devolver el ID Token, NUNCA el access token
+        const idToken = session.getIdToken().getJwtToken()
+        resolve(idToken)
+      })
+    })
+  } catch {
     return Promise.resolve(null)
   }
-
-  return new Promise((resolve) => {
-    user.getSession((err: Error | null, session: CognitoUserSession | null) => {
-      if (err || !session || !session.isValid()) {
-        resolve(null)
-        return
-      }
-      // OBLIGATORIO: extraer y devolver el ID Token, NUNCA el access token
-      const idToken = session.getIdToken().getJwtToken()
-      resolve(idToken)
-    })
-  })
 }
