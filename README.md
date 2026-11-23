@@ -18,7 +18,9 @@ Proyecto del curso Buenas Prácticas de Desarrollo de Software.
 npm install
 npm run lint && npm run typecheck && npm test && npm run build
 npm run db:local && npm run test:int   # pruebas de integración con DynamoDB Local
+npm run dev -w @parkfacil/web          # frontend en http://localhost:5173 (#ui abre el sistema de diseño)
 ```
 
 Despliegue en AWS Emulator y en el Learner Lab: [docs/despliegue.md](docs/despliegue.md).
 Contrato de la API y modelo de datos: [docs/api.md](docs/api.md).
+Sistema de diseño del frontend: [docs/sistema-de-diseno.md](docs/sistema-de-diseno.md).
