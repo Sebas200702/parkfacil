@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@app': src('app'),
+      '@features': src('features'),
       '@shared': src('shared'),
       '@tests': src('__tests__'),
     },
