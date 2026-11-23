@@ -7,9 +7,13 @@ const src = (path: string) => fileURLToPath(new URL(`./src/${path}`, import.meta
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    global: 'globalThis',
+  },
   resolve: {
     alias: {
       '@app': src('app'),
+      '@context': src('context'),
       '@lib': src('lib'),
       '@shared': src('shared'),
       '@tests': src('__tests__'),
