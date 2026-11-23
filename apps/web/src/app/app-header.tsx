@@ -18,6 +18,9 @@ const BrandMark = () => (
   </svg>
 )
 
+const LINK_FOCUS =
+  'rounded-plate focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-paint'
+
 export interface AppHeaderProps {
   onNavigate?: (route: string) => void
 }
@@ -34,17 +37,22 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
 
   return (
     <header className="bg-asphalt-950 text-paper">
-      <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between px-4">
+      <div className="flex h-14 w-full items-center justify-between px-4">
         <a
           href="/"
           onClick={handleBrandClick}
-          className="inline-flex items-center gap-2.5 rounded-plate focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-paint"
+          className={`inline-flex items-center gap-2.5 ${LINK_FOCUS}`}
         >
           <BrandMark />
           <span className="text-heading font-extrabold tracking-tight">ParkFácil</span>
         </a>
 
         <nav aria-label="Navegación de usuario" className="flex items-center gap-2">
+          {import.meta.env.DEV ? (
+            <a href="#ui" className={`text-label underline underline-offset-4 ${LINK_FOCUS}`}>
+              Sistema de diseño
+            </a>
+          ) : null}
           {isAuthenticated ? (
             <Button
               variant="secondary"

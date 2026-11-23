@@ -61,8 +61,9 @@ cuesta menos de USD 1 en la semana (el barrido de cada minuto, unas 11.500 invoc
      --parameter-overrides SensorApiKey=<clave-secreta> SesFrom=<correo-verificado-o-vacío>
    ```
 
-   En el Learner Lab hay que agregar `DeployFrontend=false`: el lab bloquea
-   `cloudfront:CreateOriginAccessControl` (y también las OAI), así que S3 + CloudFront no se puede crear.
+   Para el frontend agrega `FrontendDomain=<dominio> AllowedOrigin=https://<dominio>` (ver
+   sección 4). Sin dominio, el bucket se crea con nombre automático y solo responde por la URL de S3.
+   `DeployFrontend=false` omite el bucket del frontend.
    `UseScheduler=false` solo si EventBridge Scheduler no acepta `LabRole` (en el lab sí lo acepta).
 4. Carga los datos de demostración:
 
@@ -91,7 +92,8 @@ Notas del lab:
   Para publicar mensajes usa **IoT Core → MQTT test client** en la consola, o el simulador con
   `MODO=http API_URL=<ApiUrl> SENSOR_API_KEY=<clave>`.
 - La terminal de CloudShell a veces deja de refrescar: recarga la página y, si el prompt no vuelve, presiona Ctrl+C.
-- Frontend: CloudFront está bloqueado. Alternativas a probar: hosting estático de S3 (HTTP) o Amplify Hosting.
+- CloudFront está bloqueado (`cloudfront:CreateOriginAccessControl` y las OAI se niegan), por eso el
+  frontend usa hosting estático de S3 y Cloudflare para el HTTPS (sección 4).
 
 ## 3. Datos para el frontend
 
@@ -101,8 +103,44 @@ Notas del lab:
 | `VITE_USER_POOL_ID` | `UserPoolId` |
 | `VITE_USER_POOL_CLIENT_ID` | `UserPoolClientId` |
 
+## 4. Frontend en S3 con dominio propio (Cloudflare)
+
+El endpoint de website de S3 solo habla HTTP y enruta por el header `Host`, así que el bucket debe
+llamarse exactamente como el dominio (`FrontendDomain`). Cloudflare pone el HTTPS adelante.
+
+1. Despliega con `FrontendDomain=app.<dominio>` y `AllowedOrigin=https://app.<dominio>`.
+2. Sube el sitio: `aws s3 sync apps/web/out s3://app.<dominio> --delete`.
+3. En Cloudflare, DNS: registro `CNAME` `app` → valor de la salida `FrontendWebsiteUrl` sin `http://`
+   (`app.<dominio>.s3-website-us-east-1.amazonaws.com`), con el proxy activado (nube naranja).
+4. En Cloudflare, SSL/TLS: modo **Flexible** (S3 website no acepta HTTPS hacia el origen).
+5. Comprueba `https://app.<dominio>` y que el login llame a la API sin errores de CORS.
+
+El bucket solo permite leer objetos (`s3:GetObject`); listar y escribir siguen privados.
+`FrontendErrorDocument` es `404.html` (lo genera `next build` con `output: 'export'`).
+
+## Notas del frontend
+
 El frontend debe enviar el **ID token** de Cognito en `Authorization: Bearer <idToken>`.
 El access token no sirve: no trae `email`, `custom:parqueaderoId` ni el `aud` que valida la API.
 
 Usuarios de demostración (contraseña `ParkFacil2026`): `conductor@parkfacil.test`,
 `admin.centro-93@parkfacil.test`, `admin.zona-t@parkfacil.test`, `admin.usaquen@parkfacil.test`.
+
+## 5. Despliegue automático (GitHub Actions)
+
+`.github/workflows/deploy.yml` corre después de cada merge a `main` (o a mano desde
+**Actions → Deploy → Run workflow**):
+
+| Job | Qué hace |
+|---|---|
+| `credentials` | Revisa los secretos. Sin secretos omite el despliegue; con credenciales caducadas falla con un aviso. |
+| `backend` | Empaqueta las Lambdas y despliega el stack `parkfacil` con CloudFormation. |
+| `frontend` | Lee las salidas del stack, compila `apps/web` con esas variables y sube el sitio con `aws s3 sync`. |
+
+Configuración del repositorio (**Settings → Secrets and variables → Actions**), solo el líder técnico:
+
+- Secretos `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` y `AWS_SESSION_TOKEN`: copiarlos de
+  **AWS Details → AWS CLI** en Vocareum al iniciar cada sesión del lab (caducan en ~4 h).
+- Variable `FRONTEND_DOMAIN` (ej. `app.<dominio>`): nombra el bucket y ajusta el CORS de la API.
+
+Las credenciales del lab dan acceso a toda la cuenta: no se comparten por chat; solo van a estos secretos.

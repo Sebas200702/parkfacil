@@ -15,6 +15,7 @@ export default defineConfig({
       '@app': src('app'),
       '@context': src('context'),
       '@lib': src('lib'),
+      '@features': src('features'),
       '@shared': src('shared'),
       '@tests': src('__tests__'),
     },

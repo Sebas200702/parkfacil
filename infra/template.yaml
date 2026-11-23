@@ -27,15 +27,28 @@ Parameters:
     Type: String
     Default: 'true'
     AllowedValues: ['true', 'false']
-    Description: Crear S3 + CloudFront para el frontend.
+    Description: Crear el bucket S3 con hosting estático para el frontend.
+  FrontendDomain:
+    Type: String
+    Default: ''
+    Description: >
+      Dominio del frontend (ej. app.parkfacil.com). El bucket se llama igual para que Cloudflare
+      lo sirva con un CNAME. Vacío = nombre automático, solo accesible por la URL de S3.
+  FrontendErrorDocument:
+    Type: String
+    Default: 404.html
+    Description: Página de error del sitio (404.html de next export; index.html para una SPA).
   AllowedOrigin:
     Type: String
     Default: '*'
-    Description: Origen permitido por CORS (la URL de CloudFront en la entrega final).
+    Description: Origen permitido por CORS (https://<FrontendDomain> en la entrega final).
 
 Conditions:
   WithScheduler: !Equals [!Ref UseScheduler, 'true']
   WithFrontend: !Equals [!Ref DeployFrontend, 'true']
+  HasFrontendDomain: !And
+    - !Condition WithFrontend
+    - !Not [!Equals [!Ref FrontendDomain, '']]
 
 Globals:
   Function:
@@ -296,63 +309,36 @@ Resources:
             Schedule: rate(1 minute)
 
   # ---------- Frontend ----------
+  # El lab bloquea CloudFront, así que el sitio se sirve desde el endpoint de website de S3
+  # (solo HTTP) y Cloudflare pone HTTPS adelante con un CNAME proxied (SSL "Flexible").
   FrontendBucket:
     Type: AWS::S3::Bucket
     Condition: WithFrontend
     Properties:
+      BucketName: !If [HasFrontendDomain, !Ref FrontendDomain, !Ref AWS::NoValue]
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: !Ref FrontendErrorDocument
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
-        BlockPublicPolicy: true
         IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
 
-  FrontendOac:
-    Type: AWS::CloudFront::OriginAccessControl
-    Condition: WithFrontend
-    Properties:
-      OriginAccessControlConfig:
-        Name: !Sub ${AWS::StackName}-oac
-        OriginAccessControlOriginType: s3
-        SigningBehavior: always
-        SigningProtocol: sigv4
-
-  FrontendDistribution:
-    Type: AWS::CloudFront::Distribution
-    Condition: WithFrontend
-    Properties:
-      DistributionConfig:
-        Enabled: true
-        DefaultRootObject: index.html
-        HttpVersion: http2
-        Origins:
-          - Id: web
-            DomainName: !GetAtt FrontendBucket.RegionalDomainName
-            OriginAccessControlId: !GetAtt FrontendOac.Id
-            S3OriginConfig: { OriginAccessIdentity: '' }
-        DefaultCacheBehavior:
-          TargetOriginId: web
-          ViewerProtocolPolicy: redirect-to-https
-          # Política administrada CachingOptimized.
-          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
-        # SPA: las rutas del frontend devuelven index.html.
-        CustomErrorResponses:
-          - { ErrorCode: 403, ResponseCode: 200, ResponsePagePath: '/index.html' }
-          - { ErrorCode: 404, ResponseCode: 200, ResponsePagePath: '/index.html' }
-
+  # Lectura pública solo de objetos (s3:GetObject); listar y escribir siguen privados.
   FrontendBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Condition: WithFrontend
     Properties:
       Bucket: !Ref FrontendBucket
       PolicyDocument:
+        Version: '2012-10-17'
         Statement:
-          - Effect: Allow
-            Principal: { Service: cloudfront.amazonaws.com }
+          - Sid: PublicReadObjects
+            Effect: Allow
+            Principal: '*'
             Action: s3:GetObject
             Resource: !Sub ${FrontendBucket.Arn}/*
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendDistribution}
 
 Outputs:
   ApiUrl:
@@ -370,6 +356,10 @@ Outputs:
   FrontendBucketName:
     Condition: WithFrontend
     Value: !Ref FrontendBucket
-  FrontendUrl:
+  FrontendWebsiteUrl:
     Condition: WithFrontend
-    Value: !Sub https://${FrontendDistribution.DomainName}
+    Description: Endpoint de website de S3 (HTTP). Destino del CNAME en Cloudflare.
+    Value: !GetAtt FrontendBucket.WebsiteURL
+  FrontendUrl:
+    Condition: HasFrontendDomain
+    Value: !Sub https://${FrontendDomain}

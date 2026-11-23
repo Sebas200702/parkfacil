@@ -1,5 +1,6 @@
 import { Button } from '@shared/ui/button'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { LocateFixed } from 'lucide-react'
 import { describe, expect, it, vi } from 'vitest'
 
 describe('Button', () => {
@@ -31,5 +32,14 @@ describe('Button', () => {
 
     expect(button.getAttribute('aria-busy')).toBe('true')
     expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('solo con icono se identifica por su nombre accesible', () => {
+    render(<Button icon={LocateFixed} iconOnly aria-label="Mi ubicación" />)
+
+    const button = screen.getByRole('button', { name: 'Mi ubicación' })
+
+    expect(button.textContent).toBe('')
+    expect(button.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true')
   })
 })
