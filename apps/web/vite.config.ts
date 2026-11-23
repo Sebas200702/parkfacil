@@ -13,9 +13,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@app': src('app'),
+      '@components': src('components'),
       '@context': src('context'),
-      '@lib': src('lib'),
       '@features': src('features'),
+      '@lib': src('lib'),
+      '@pages': src('pages'),
       '@shared': src('shared'),
       '@tests': src('__tests__'),
     },

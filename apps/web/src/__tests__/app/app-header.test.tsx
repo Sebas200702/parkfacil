@@ -4,6 +4,21 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import type React from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
+const createMockJwt = (groups: string[] = ['admin']): string => {
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+  const body = btoa(
+    JSON.stringify({
+      sub: 'admin-header-test',
+      'cognito:groups': groups,
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    }),
+  )
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+  return `${header}.${body}.sig`
+}
+
 const createMockAuthContext = (overrides?: Partial<AuthContextValue>): AuthContextValue => ({
   idToken: null,
   isAuthenticated: false,
@@ -62,5 +77,34 @@ describe('AppHeader', () => {
     fireEvent.click(brandLink)
 
     expect(onNavigate).toHaveBeenCalledWith('/')
+  })
+
+  it('muestra el enlace a Administración únicamente si el usuario pertenece al grupo admin', () => {
+    const onNavigate = vi.fn()
+    const adminToken = createMockJwt(['admin'])
+    const auth = createMockAuthContext({
+      isAuthenticated: true,
+      idToken: adminToken,
+    })
+
+    renderWithAuth(<AppHeader onNavigate={onNavigate} />, auth)
+
+    const adminButton = screen.getByRole('button', { name: 'Administración' })
+    expect(adminButton).toBeDefined()
+
+    fireEvent.click(adminButton)
+    expect(onNavigate).toHaveBeenCalledWith('/admin')
+  })
+
+  it('no muestra el enlace a Administración si el usuario no tiene rol admin', () => {
+    const nonAdminToken = createMockJwt(['conductor'])
+    const auth = createMockAuthContext({
+      isAuthenticated: true,
+      idToken: nonAdminToken,
+    })
+
+    renderWithAuth(<AppHeader />, auth)
+
+    expect(screen.queryByRole('button', { name: 'Administración' })).toBeNull()
   })
 })
