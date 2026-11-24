@@ -1,5 +1,6 @@
 import { useAuth } from '@context/AuthContext'
 import { getAdminParqueaderoId } from '@lib/token'
+import { LiveSpacesPage } from '@pages/admin/LiveSpacesPage'
 import { Notice } from '@shared/ui/notice'
 import { Segmented, type SegmentedOption } from '@shared/ui/segmented'
 import { BarChart3, Car, DollarSign } from 'lucide-react'
@@ -75,13 +76,7 @@ export const AdminLayout = ({ currentRoute = '/admin/espacios', onNavigate }: Ad
       {/* Contenido de cada sección placeholder */}
       <div className="rounded-plate border-2 border-asphalt-200 bg-paper p-6 shadow-sm">
         {activeSection === 'espacios' ? (
-          <div className="grid gap-4" data-testid="admin-section-espacios">
-            <h2 className="text-heading font-extrabold text-asphalt-950">Espacios en vivo</h2>
-            <Notice tone="ok" title="Espacios en tiempo real">
-              Monitoreo del estado de cada espacio (Libre, Ocupado, Reservado) por tipo de vehículo.
-              Esta vista completa estará disponible en la tarea E3.
-            </Notice>
-          </div>
+          <LiveSpacesPage />
         ) : activeSection === 'tarifas' ? (
           <div className="grid gap-4" data-testid="admin-section-tarifas">
             <h2 className="text-heading font-extrabold text-asphalt-950">

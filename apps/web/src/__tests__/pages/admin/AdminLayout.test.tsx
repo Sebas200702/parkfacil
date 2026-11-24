@@ -35,6 +35,10 @@ const createMockAuthContext = (token: string): AuthContextValue => ({
 const renderWithAuth = (ui: React.ReactElement, authValue: AuthContextValue) =>
   render(<AuthContext.Provider value={authValue}>{ui}</AuthContext.Provider>)
 
+vi.mock('@lib/api', () => ({
+  api: { get: vi.fn().mockResolvedValue({ data: [], status: 200, error: null }) },
+}))
+
 describe('AdminLayout', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -62,7 +66,7 @@ describe('AdminLayout', () => {
     renderWithAuth(<AdminLayout currentRoute="/admin/espacios" />, auth)
 
     expect(screen.getByTestId('admin-section-espacios')).toBeDefined()
-    expect(screen.getByText('Espacios en tiempo real')).toBeDefined()
+    expect(screen.getByRole('heading', { name: 'Espacios en vivo' })).toBeDefined()
   })
 
   it('renderiza la sección de tarifas cuando la ruta es /admin/tarifas', () => {
