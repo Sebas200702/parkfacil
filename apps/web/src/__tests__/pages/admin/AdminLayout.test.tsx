@@ -27,6 +27,8 @@ const createMockAuthContext = (token: string): AuthContextValue => ({
   login: vi.fn(),
   register: vi.fn(),
   confirmCode: vi.fn(),
+  loginWithGoogle: vi.fn(),
+  oauthError: null,
   logout: vi.fn(),
 })
 

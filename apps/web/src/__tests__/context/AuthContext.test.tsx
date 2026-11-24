@@ -3,14 +3,23 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import type React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { mockGetCurrentIdToken, mockSignIn, mockSignUp, mockConfirmSignUp, mockSignOut } =
-  vi.hoisted(() => ({
-    mockGetCurrentIdToken: vi.fn(),
-    mockSignIn: vi.fn(),
-    mockSignUp: vi.fn(),
-    mockConfirmSignUp: vi.fn(),
-    mockSignOut: vi.fn(),
-  }))
+const {
+  mockGetCurrentIdToken,
+  mockSignIn,
+  mockSignUp,
+  mockConfirmSignUp,
+  mockSignOut,
+  mockCompleteOAuthSignIn,
+  mockStartGoogleSignIn,
+} = vi.hoisted(() => ({
+  mockCompleteOAuthSignIn: vi.fn(),
+  mockStartGoogleSignIn: vi.fn(),
+  mockGetCurrentIdToken: vi.fn(),
+  mockSignIn: vi.fn(),
+  mockSignUp: vi.fn(),
+  mockConfirmSignUp: vi.fn(),
+  mockSignOut: vi.fn(),
+}))
 
 vi.mock('@lib/cognito', () => ({
   getCurrentIdToken: mockGetCurrentIdToken,
@@ -18,6 +27,11 @@ vi.mock('@lib/cognito', () => ({
   signUp: mockSignUp,
   confirmSignUp: mockConfirmSignUp,
   signOut: mockSignOut,
+}))
+
+vi.mock('@lib/cognito-oauth', () => ({
+  completeOAuthSignIn: mockCompleteOAuthSignIn,
+  startGoogleSignIn: mockStartGoogleSignIn,
 }))
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -28,6 +42,28 @@ describe('AuthContext', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetCurrentIdToken.mockResolvedValue(null)
+    mockCompleteOAuthSignIn.mockResolvedValue(null)
+  })
+
+  it('usa el token de Google al volver del Hosted UI de Cognito', async () => {
+    mockCompleteOAuthSignIn.mockResolvedValueOnce('id-token-google')
+
+    const { result } = renderHook(() => useAuth(), { wrapper })
+
+    await waitFor(() => {
+      expect(result.current.idToken).toBe('id-token-google')
+    })
+    expect(result.current.isAuthenticated).toBe(true)
+  })
+
+  it('loginWithGoogle inicia la redirección a Google', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper })
+
+    await act(async () => {
+      await result.current.loginWithGoogle()
+    })
+
+    expect(mockStartGoogleSignIn).toHaveBeenCalledTimes(1)
   })
 
   it('restaura la sesión activa al montar el provider sin bloquear la carga', async () => {

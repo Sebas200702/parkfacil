@@ -4,6 +4,7 @@ import { Field, Input } from '@shared/ui/field'
 import { Notice } from '@shared/ui/notice'
 import { translateCognitoError } from '@shared/utils/cognito-errors'
 import { type FormEvent, useState } from 'react'
+import { GoogleSignIn } from './google-sign-in'
 
 export interface LoginScreenProps {
   onNavigate?: (route: string) => void
@@ -147,6 +148,8 @@ export const LoginScreen = ({ onNavigate }: LoginScreenProps) => {
             </Button>
           </form>
         )}
+
+        {!needsConfirmation ? <GoogleSignIn /> : null}
 
         {!needsConfirmation ? (
           <div className="pt-2 text-center text-label text-asphalt-600">
