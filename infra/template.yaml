@@ -54,8 +54,11 @@ Parameters:
     Description: Client Secret de OAuth de Google. Obligatorio si se define GoogleClientId.
   CognitoDomainPrefix:
     Type: String
-    Default: ''
-    Description: Prefijo único del dominio de Cognito (<prefijo>.auth.<región>.amazoncognito.com). Obligatorio con Google.
+    Default: parkfacil-auth
+    AllowedPattern: '^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$'
+    Description: >
+      Prefijo único del dominio de Cognito (<prefijo>.auth.<región>.amazoncognito.com).
+      Solo se usa con Google; cámbialo por uno propio porque debe ser único en AWS.
   OAuthCallbackUrls:
     Type: CommaDelimitedList
     Default: 'http://localhost:5173/'
@@ -136,7 +139,12 @@ Resources:
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
+    # El proveedor solo existe con Google; CloudFormation ignora la dependencia si no se crea.
     DependsOn: [GoogleIdentityProvider]
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [E3005]
     Properties:
       UserPoolId: !Ref UserPool
       ClientName: web
