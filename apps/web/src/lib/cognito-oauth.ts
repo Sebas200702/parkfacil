@@ -5,7 +5,7 @@ import {
   CognitoUser,
   CognitoUserSession,
 } from 'amazon-cognito-identity-js'
-import { getUserPool } from './cognito'
+import { getUserPool } from './cognito-pool'
 
 const OAUTH_VERIFIER_KEY = 'parkfacil.oauth.verifier'
 const OAUTH_STATE_KEY = 'parkfacil.oauth.state'
@@ -64,7 +64,7 @@ export const startGoogleSignIn = async (): Promise<void> => {
 /**
  * Si la URL trae `?code=` de Cognito, canjea el código por tokens, guarda la sesión
  * en el mismo almacenamiento que usa el SDK y devuelve el ID Token. Devuelve null
- * si la URL no es un retorno de OAuth.
+ * si no es un retorno de OAuth.
  */
 export const completeOAuthSignIn = async (): Promise<string | null> => {
   const url = new URL(window.location.href)

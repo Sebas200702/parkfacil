@@ -2,10 +2,13 @@ import {
   AuthenticationDetails,
   CognitoUser,
   CognitoUserAttribute,
-  CognitoUserPool,
   type CognitoUserSession,
   type ISignUpResult,
 } from 'amazon-cognito-identity-js'
+import { getUserPool } from './cognito-pool'
+
+export { completeOAuthSignIn, isGoogleSignInEnabled, startGoogleSignIn } from './cognito-oauth'
+export { getUserPool } from './cognito-pool'
 
 export interface SignUpParams {
   email: string
@@ -25,24 +28,6 @@ export interface SignInParams {
 
 export interface SignInSession extends CognitoUserSession {
   idToken: string
-}
-
-let userPoolInstance: CognitoUserPool | null = null
-
-export const getUserPool = (): CognitoUserPool => {
-  if (userPoolInstance) {
-    return userPoolInstance
-  }
-
-  const userPoolId = import.meta.env.VITE_USER_POOL_ID || 'dummy_user_pool_id'
-  const clientId = import.meta.env.VITE_USER_POOL_CLIENT_ID || 'dummy_client_id'
-
-  userPoolInstance = new CognitoUserPool({
-    UserPoolId: userPoolId,
-    ClientId: clientId,
-  })
-
-  return userPoolInstance
 }
 
 export const getCurrentUser = (): CognitoUser | null => {
