@@ -11,6 +11,8 @@ const createMockAuthContext = (overrides?: Partial<AuthContextValue>): AuthConte
   login: vi.fn(),
   register: vi.fn(),
   confirmCode: vi.fn(),
+  loginWithGoogle: vi.fn(),
+  oauthError: null,
   logout: vi.fn(),
   ...overrides,
 })
@@ -123,5 +125,12 @@ describe('RegisterScreen', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Inicia sesión aquí' }))
     expect(onNavigate).toHaveBeenCalledWith('/login')
+  })
+})
+
+describe('RegisterScreen con Google', () => {
+  it('muestra "Continuar con Google" en el registro', () => {
+    renderWithAuth(<RegisterScreen />, createMockAuthContext())
+    expect(screen.getByRole('button', { name: 'Continuar con Google' })).toBeDefined()
   })
 })

@@ -11,6 +11,8 @@ const createMockAuthContext = (overrides?: Partial<AuthContextValue>): AuthConte
   login: vi.fn(),
   register: vi.fn(),
   confirmCode: vi.fn(),
+  loginWithGoogle: vi.fn(),
+  oauthError: null,
   logout: vi.fn(),
   ...overrides,
 })
@@ -118,5 +120,27 @@ describe('LoginScreen', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Regístrate aquí' }))
     expect(onNavigate).toHaveBeenCalledWith('/registro')
+  })
+})
+
+describe('LoginScreen con Google', () => {
+  it('muestra "Continuar con Google" y lo inicia al hacer clic', async () => {
+    const loginWithGoogle = vi.fn().mockResolvedValueOnce(undefined)
+    const auth = createMockAuthContext({ loginWithGoogle })
+    renderWithAuth(<LoginScreen />, auth)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar con Google' }))
+
+    await waitFor(() => expect(loginWithGoogle).toHaveBeenCalledTimes(1))
+  })
+
+  it('muestra un error si Google no está disponible', async () => {
+    const loginWithGoogle = vi.fn().mockRejectedValueOnce(new Error('GOOGLE_SIGNIN_NOT_CONFIGURED'))
+    const auth = createMockAuthContext({ loginWithGoogle })
+    renderWithAuth(<LoginScreen />, auth)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar con Google' }))
+
+    expect(await screen.findByText(/Google no está disponible/)).toBeDefined()
   })
 })

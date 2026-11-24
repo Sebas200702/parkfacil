@@ -42,8 +42,27 @@ Parameters:
     Type: String
     Default: '*'
     Description: Origen permitido por CORS (https://<FrontendDomain> en la entrega final).
+  GoogleClientId:
+    Type: String
+    Default: ''
+    Description: >
+      Client ID de OAuth de Google (Google Cloud Console). Vacío = sin "Continuar con Google".
+  GoogleClientSecret:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: Client Secret de OAuth de Google. Obligatorio si se define GoogleClientId.
+  CognitoDomainPrefix:
+    Type: String
+    Default: ''
+    Description: Prefijo único del dominio de Cognito (<prefijo>.auth.<región>.amazoncognito.com). Obligatorio con Google.
+  OAuthCallbackUrls:
+    Type: CommaDelimitedList
+    Default: 'http://localhost:5173/'
+    Description: URLs a las que Cognito puede volver tras Google (con barra final), también usadas al cerrar sesión.
 
 Conditions:
+  WithGoogle: !Not [!Equals [!Ref GoogleClientId, '']]
   WithScheduler: !Equals [!Ref UseScheduler, 'true']
   WithFrontend: !Equals [!Ref DeployFrontend, 'true']
   HasFrontendDomain: !And
@@ -117,14 +136,43 @@ Resources:
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
+    DependsOn: [GoogleIdentityProvider]
     Properties:
       UserPoolId: !Ref UserPool
       ClientName: web
       GenerateSecret: false
       ExplicitAuthFlows: [ALLOW_USER_SRP_AUTH, ALLOW_USER_PASSWORD_AUTH, ALLOW_REFRESH_TOKEN_AUTH]
+      SupportedIdentityProviders: !If [WithGoogle, [COGNITO, Google], [COGNITO]]
+      AllowedOAuthFlowsUserPoolClient: !If [WithGoogle, true, !Ref 'AWS::NoValue']
+      AllowedOAuthFlows: !If [WithGoogle, [code], !Ref 'AWS::NoValue']
+      AllowedOAuthScopes: !If [WithGoogle, [openid, email, profile], !Ref 'AWS::NoValue']
+      CallbackURLs: !If [WithGoogle, !Ref OAuthCallbackUrls, !Ref 'AWS::NoValue']
+      LogoutURLs: !If [WithGoogle, !Ref OAuthCallbackUrls, !Ref 'AWS::NoValue']
       PreventUserExistenceErrors: ENABLED
       # Los usuarios no pueden escribir custom:parqueaderoId: solo un administrador lo asigna.
       WriteAttributes: [email, name]
+
+  GoogleIdentityProvider:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Condition: WithGoogle
+    Properties:
+      UserPoolId: !Ref UserPool
+      ProviderName: Google
+      ProviderType: Google
+      ProviderDetails:
+        client_id: !Ref GoogleClientId
+        client_secret: !Ref GoogleClientSecret
+        authorize_scopes: openid email profile
+      AttributeMapping:
+        email: email
+        name: name
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Condition: WithGoogle
+    Properties:
+      UserPoolId: !Ref UserPool
+      Domain: !Ref CognitoDomainPrefix
 
   ConductorGroup:
     Type: AWS::Cognito::UserPoolGroup
@@ -348,6 +396,10 @@ Outputs:
     Value: !Ref UserPool
   UserPoolClientId:
     Value: !Ref UserPoolClient
+  CognitoDomain:
+    Condition: WithGoogle
+    Description: VITE_COGNITO_DOMAIN del frontend. Redirect URI de Google = https://<este dominio>/oauth2/idpresponse.
+    Value: !Sub ${CognitoDomainPrefix}.auth.${AWS::Region}.amazoncognito.com
   TableName:
     Value: !Ref Table
   IotTopic:

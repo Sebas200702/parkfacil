@@ -3,7 +3,9 @@ import {
   signIn as cognitoSignIn,
   signOut as cognitoSignOut,
   signUp as cognitoSignUp,
+  completeOAuthSignIn,
   getCurrentIdToken,
+  startGoogleSignIn,
 } from '@lib/cognito'
 import {
   createContext,
@@ -26,6 +28,10 @@ export interface AuthContextValue {
     attributes?: Record<string, string>,
   ) => Promise<unknown>
   confirmCode: (email: string, code: string) => Promise<void>
+  /** Redirige a Google (vía Cognito). La sesión se completa al volver a la app. */
+  loginWithGoogle: () => Promise<void>
+  /** Error del retorno de Google, si lo hubo. */
+  oauthError: string | null
   logout: () => void
 }
 
@@ -38,15 +44,22 @@ export interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [idToken, setIdToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [oauthError, setOauthError] = useState<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
 
     const restoreSession = async () => {
       try {
-        const token = await getCurrentIdToken()
+        const oauthToken = await completeOAuthSignIn().catch(() => {
+          if (isMounted) {
+            setOauthError('No se pudo iniciar sesión con Google. Intenta de nuevo.')
+          }
+          return null
+        })
+        const token = oauthToken ?? (await getCurrentIdToken())
         if (isMounted) {
-          setIdToken(token)
+          setIdToken((current) => current ?? token)
         }
       } catch {
         if (isMounted) {
@@ -71,6 +84,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } finally {
       setIsLoading(false)
     }
+  }, [])
+
+  const loginWithGoogle = useCallback(async (): Promise<void> => {
+    setOauthError(null)
+    await startGoogleSignIn()
   }, [])
 
   const register = useCallback(
@@ -107,9 +125,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       login,
       register,
       confirmCode,
+      loginWithGoogle,
+      oauthError,
       logout,
     }),
-    [idToken, isLoading, login, register, confirmCode, logout],
+    [idToken, isLoading, login, register, confirmCode, loginWithGoogle, oauthError, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
