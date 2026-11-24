@@ -27,6 +27,9 @@ vi.mock('@lib/cognito', () => ({
   signUp: mockSignUp,
   confirmSignUp: mockConfirmSignUp,
   signOut: mockSignOut,
+}))
+
+vi.mock('@lib/cognito-oauth', () => ({
   completeOAuthSignIn: mockCompleteOAuthSignIn,
   startGoogleSignIn: mockStartGoogleSignIn,
 }))

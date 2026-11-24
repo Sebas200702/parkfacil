@@ -3,10 +3,9 @@ import {
   signIn as cognitoSignIn,
   signOut as cognitoSignOut,
   signUp as cognitoSignUp,
-  completeOAuthSignIn,
   getCurrentIdToken,
-  startGoogleSignIn,
 } from '@lib/cognito'
+import { completeOAuthSignIn, startGoogleSignIn } from '@lib/cognito-oauth'
 import {
   createContext,
   type ReactNode,
