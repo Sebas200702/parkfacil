@@ -53,9 +53,9 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
           aria-label="Navegación de usuario"
           className="flex shrink-0 items-center gap-1.5 sm:gap-2"
         >
-          {import.meta.env.DEV ? (
+          {process.env.NODE_ENV === 'development' ? (
             <a
-              href="#ui"
+              href="/ui/"
               className={`hidden whitespace-nowrap text-label underline underline-offset-4 md:inline ${LINK_FOCUS}`}
             >
               Sistema de diseño

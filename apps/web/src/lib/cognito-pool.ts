@@ -7,8 +7,8 @@ export const getUserPool = (): CognitoUserPool => {
     return userPoolInstance
   }
 
-  const userPoolId = import.meta.env.VITE_USER_POOL_ID || 'dummy_user_pool_id'
-  const clientId = import.meta.env.VITE_USER_POOL_CLIENT_ID || 'dummy_client_id'
+  const userPoolId = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'dummy_user_pool_id'
+  const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || 'dummy_client_id'
 
   userPoolInstance = new CognitoUserPool({
     UserPoolId: userPoolId,

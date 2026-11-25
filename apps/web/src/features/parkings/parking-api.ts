@@ -3,7 +3,7 @@ import { MOCK_PARKINGS } from './parking-mocks'
 import type { Parking } from './parking-types'
 
 /** Sin URL de API el frontend trabaja con los datos de demostración. */
-const isDemo = (): boolean => !import.meta.env.VITE_API_URL
+const isDemo = (): boolean => !process.env.NEXT_PUBLIC_API_URL
 
 /** GET /parqueaderos (público). */
 export const fetchParkings = async (signal?: AbortSignal): Promise<Parking[]> => {

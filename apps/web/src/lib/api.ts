@@ -30,7 +30,7 @@ const getErrorCodeForStatus = (status: number): ErrorCode => {
 const isApiResponse = <T>(obj: unknown): obj is ApiResponse<T> =>
   typeof obj === 'object' && obj !== null && 'data' in obj && 'status' in obj && 'error' in obj
 
-const getBaseUrl = (): string => (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '')
+const getBaseUrl = (): string => (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/+$/, '')
 
 const buildUrl = (
   endpoint: string,

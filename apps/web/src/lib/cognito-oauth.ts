@@ -19,11 +19,11 @@ const base64Url = (bytes: Uint8Array): string =>
 const randomString = (size = 32): string => base64Url(crypto.getRandomValues(new Uint8Array(size)))
 
 const getOAuthConfig = () => {
-  const domain = (import.meta.env.VITE_COGNITO_DOMAIN ?? '')
+  const domain = (process.env.NEXT_PUBLIC_COGNITO_DOMAIN ?? '')
     .trim()
     .replace(/^https?:\/\//, '')
     .replace(/\/+$/, '')
-  const clientId = import.meta.env.VITE_USER_POOL_CLIENT_ID ?? ''
+  const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? ''
   // Sin navegador (pruebas o compilación estática) no hay window.
   const origin = typeof window === 'undefined' ? '' : window.location.origin
   return { domain, clientId, redirectUri: `${origin}/` }

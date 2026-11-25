@@ -4,7 +4,7 @@ Lenguaje visual del frontend (`apps/web`). Sale del parqueadero mismo: placas de
 pintadas en el piso y el tiquete de la talanquera. Los tokens viven en
 `apps/web/src/shared/styles/theme.css` y los componentes en `apps/web/src/shared/ui`.
 
-Para verlo corriendo: `npm run dev -w @parkfacil/web` y abrir `http://localhost:5173/#ui`.
+Para verlo corriendo: `npm run dev -w @parkfacil/web` y abrir `http://localhost:5173/ui`.
 
 ## Para quién se diseña
 

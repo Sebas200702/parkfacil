@@ -18,7 +18,7 @@ Proyecto del curso Buenas Prácticas de Desarrollo de Software.
 npm install
 npm run lint && npm run typecheck && npm test && npm run build
 npm run db:local && npm run test:int   # pruebas de integración con DynamoDB Local
-npm run dev -w @parkfacil/web          # frontend en http://localhost:5173 (#ui abre el sistema de diseño)
+npm run dev -w @parkfacil/web          # frontend en http://localhost:5173 (Next.js; /ui abre el sistema de diseño)
 ```
 
 ## Probar la app en local contra el Learner Lab
@@ -29,15 +29,15 @@ App publicada: <https://parkfacil.app>.
 2. Crea `apps/web/.env.local` (git lo ignora) con los datos del stack del lab:
 
    ```bash
-   VITE_API_URL=/api
+   NEXT_PUBLIC_API_URL=/api
    API_PROXY_TARGET=https://qm7k00c3ie.execute-api.us-east-1.amazonaws.com
-   VITE_USER_POOL_ID=us-east-1_Vmomy3wX4
-   VITE_USER_POOL_CLIENT_ID=2574arg5uv33vm6ll8k473pmil
-   VITE_COGNITO_DOMAIN=parkfacil-auth.auth.us-east-1.amazoncognito.com
+   NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_Vmomy3wX4
+   NEXT_PUBLIC_COGNITO_CLIENT_ID=2574arg5uv33vm6ll8k473pmil
+   NEXT_PUBLIC_COGNITO_DOMAIN=parkfacil-auth.auth.us-east-1.amazoncognito.com
    ```
 
    La API solo acepta CORS desde `https://parkfacil.app`; por eso el navegador llama a `/api` y
-   Vite la reenvía a `API_PROXY_TARGET`. Si el stack se recrea, toma los valores nuevos de sus
+   Next.js la reenvía a `API_PROXY_TARGET`. Si el stack se recrea, toma los valores nuevos de sus
    salidas (`ApiUrl`, `UserPoolId`, `UserPoolClientId`, `CognitoDomain`).
 3. `npm run dev -w @parkfacil/web` y abre <http://localhost:5173>.
 4. Inicia sesión:
@@ -49,7 +49,7 @@ App publicada: <https://parkfacil.app>.
 Ten en cuenta:
 
 - La API, Cognito y los datos solo responden mientras alguien tenga el Learner Lab iniciado.
-  Sin lab, deja `VITE_API_URL` vacía y el frontend usa parqueaderos de demostración.
+  Sin lab, deja `NEXT_PUBLIC_API_URL` y las de Cognito vacías y el frontend usa parqueaderos de demostración.
 - Los datos son compartidos: reservas y tarifas que cambies se ven para todo el equipo.
 - Antes de abrir un PR: `npm run lint && npm run typecheck && npm test && npm run build`.
 

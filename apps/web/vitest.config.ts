@@ -1,15 +1,11 @@
 import { fileURLToPath } from 'node:url'
-import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
-import { createApiProxy } from './src/lib/vite-dev-proxy'
 
-const root = fileURLToPath(new URL('.', import.meta.url))
 const src = (path: string) => fileURLToPath(new URL(`./src/${path}`, import.meta.url))
 
-export default defineConfig(({ mode }) => ({
-  plugins: [react(), tailwindcss()],
+export default defineConfig({
+  plugins: [react()],
   define: {
     global: 'globalThis',
   },
@@ -31,8 +27,4 @@ export default defineConfig(({ mode }) => ({
     setupFiles: ['src/__tests__/setup.ts'],
     css: false,
   },
-  server: {
-    // API_PROXY_TARGET en .env.local: /api se reenvía a la API del lab (ver README).
-    proxy: createApiProxy(loadEnv(mode, root, '').API_PROXY_TARGET),
-  },
-}))
+})
