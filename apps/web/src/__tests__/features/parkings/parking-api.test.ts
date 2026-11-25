@@ -1,38 +1,46 @@
 import { fetchParkings } from '@features/parkings/parking-api'
 import { MOCK_PARKINGS } from '@features/parkings/parking-mocks'
+import { api } from '@lib/api'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const API_URL = 'https://api.example.test'
+vi.mock('@lib/api', () => ({ api: { get: vi.fn() } }))
 
-const respondWith = (status: number, body: unknown) =>
-  vi.stubGlobal(
-    'fetch',
-    vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => body }),
-  )
+const get = vi.mocked(api.get)
 
-afterEach(() => vi.unstubAllGlobals())
+const useRealApi = () => vi.stubEnv('VITE_API_URL', 'https://api.example.test')
+const useDemoData = () => vi.stubEnv('VITE_API_URL', '')
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+  get.mockReset()
+})
 
 describe('fetchParkings', () => {
-  it('sin URL de API devuelve los datos de demostración', async () => {
-    expect(await fetchParkings(undefined, '')).toBe(MOCK_PARKINGS)
+  it('sin URL de API devuelve los datos de demostración sin llamar a la red', async () => {
+    useDemoData()
+
+    expect(await fetchParkings()).toBe(MOCK_PARKINGS)
+    expect(get).not.toHaveBeenCalled()
   })
 
-  it('pide GET /parqueaderos y desempaca data', async () => {
-    respondWith(200, { data: MOCK_PARKINGS, status: 200, error: null })
+  it('pide GET /parqueaderos con el cliente compartido', async () => {
+    useRealApi()
+    get.mockResolvedValue({ data: MOCK_PARKINGS, status: 200, error: null })
 
-    const parkings = await fetchParkings(undefined, API_URL)
+    const parkings = await fetchParkings()
 
-    expect(fetch).toHaveBeenCalledWith(`${API_URL}/parqueaderos`, { signal: undefined })
+    expect(get).toHaveBeenCalledWith('/parqueaderos', { signal: undefined })
     expect(parkings).toEqual(MOCK_PARKINGS)
   })
 
   it('falla con el mensaje de la API cuando responde error', async () => {
-    respondWith(500, {
+    useRealApi()
+    get.mockResolvedValue({
       data: null,
       status: 500,
       error: { code: 'INTERNAL', message: 'Error interno' },
     })
 
-    await expect(fetchParkings(undefined, API_URL)).rejects.toThrow('Error interno')
+    await expect(fetchParkings()).rejects.toThrow('Error interno')
   })
 })
