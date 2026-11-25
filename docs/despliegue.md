@@ -115,8 +115,37 @@ llamarse exactamente como el dominio (`FrontendDomain`). Cloudflare pone el HTTP
 4. En Cloudflare, SSL/TLS: modo **Flexible** (S3 website no acepta HTTPS hacia el origen).
 5. Comprueba `https://app.<dominio>` y que el login llame a la API sin errores de CORS.
 
+### Configuración actual: `parkfacil.app`
+
+- Registrador: name.com, con nameservers `corey.ns.cloudflare.com` y `violet.ns.cloudflare.com`.
+- Cloudflare: `CNAME parkfacil.app → parkfacil.app.s3-website-us-east-1.amazonaws.com` (proxy, CNAME
+  flattening en el apex), `CNAME www → parkfacil.app` con redirección 301 a `https://parkfacil.app`,
+  SSL **Flexible** y "Always Use HTTPS".
+- GitHub: variable `FRONTEND_DOMAIN=parkfacil.app`. `deploy.yml` pasa `FrontendDomain`, `AllowedOrigin`
+  y `OAuthCallbackUrls` (`https://parkfacil.app/` y `http://localhost:5173/`).
+
 El bucket solo permite leer objetos (`s3:GetObject`); listar y escribir siguen privados.
 `FrontendErrorDocument` es `404.html` (lo genera `next build` con `output: 'export'`).
+
+## 5. Inicio de sesión con Google
+
+Cognito hace de intermediario: el navegador va al Hosted UI de Cognito, que redirige a Google y
+vuelve a `https://parkfacil.app/` con un código (Authorization Code + PKCE).
+
+1. Google Cloud Console → APIs y servicios → Credenciales → Crear ID de cliente de OAuth
+   (tipo **Aplicación web**). Configura antes la pantalla de consentimiento (externa).
+   - Orígenes de JavaScript autorizados: `https://parkfacil-auth.auth.us-east-1.amazoncognito.com`
+   - URI de redireccionamiento autorizado:
+     `https://parkfacil-auth.auth.us-east-1.amazoncognito.com/oauth2/idpresponse`
+2. En GitHub, secretos `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`. Opcional: variable
+   `COGNITO_DOMAIN_PREFIX` si `parkfacil-auth` ya está tomado (cambia también las URLs del paso 1).
+3. Ejecuta **Deploy**. El stack crea el proveedor Google y el dominio de Cognito; el job del frontend
+   lee la salida `CognitoDomain` y la compila como `VITE_COGNITO_DOMAIN`.
+4. Callbacks permitidos en Cognito: `https://parkfacil.app/` y `http://localhost:5173/`. Para
+   probar en local, pon `VITE_COGNITO_DOMAIN` en `apps/web/.env`.
+
+Si Google responde `redirect_uri_mismatch`, la URI del paso 1 no coincide con el dominio de
+Cognito. Si Cognito responde `redirect_mismatch`, el origen del sitio no está en `OAuthCallbackUrls`.
 
 ## Notas del frontend
 
