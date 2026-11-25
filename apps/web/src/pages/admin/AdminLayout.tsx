@@ -1,8 +1,8 @@
 import { useAuth } from '@context/AuthContext'
 import { getAdminParqueaderoId } from '@lib/token'
 import { LiveSpacesPage } from '@pages/admin/LiveSpacesPage'
+import { MetricsPage } from '@pages/admin/MetricsPage'
 import { TariffsPage } from '@pages/admin/TariffsPage'
-import { Notice } from '@shared/ui/notice'
 import { Segmented, type SegmentedOption } from '@shared/ui/segmented'
 import { BarChart3, Car, DollarSign } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
@@ -81,13 +81,7 @@ export const AdminLayout = ({ currentRoute = '/admin/espacios', onNavigate }: Ad
         ) : activeSection === 'tarifas' ? (
           <TariffsPage />
         ) : (
-          <div className="grid gap-4" data-testid="admin-section-metricas">
-            <h2 className="text-heading font-extrabold text-asphalt-950">Métricas operativas</h2>
-            <Notice tone="ok" title="Métricas y estadísticas">
-              Ocupación general, horas pico, entradas y cálculo de ingresos estimados. Esta vista
-              completa estará disponible en la tarea E5.
-            </Notice>
-          </div>
+          <MetricsPage />
         )}
       </div>
     </div>
