@@ -1,7 +1,7 @@
 import { useAuth } from '@context/AuthContext'
 import { isAdminUser } from '@lib/token'
 import { Button } from '@shared/ui/button'
-import { LogIn, LogOut, Shield, UserPlus } from 'lucide-react'
+import { LogIn, LogOut, Shield, Ticket, UserPlus } from 'lucide-react'
 import type { MouseEvent } from 'react'
 
 /** Marca: una bahía con el cupo apartado en violeta. Mismo dibujo que public/favicon.svg. */
@@ -76,6 +76,17 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
               className="h-9 min-h-9 px-2.5 text-sm sm:px-3 text-asphalt-950"
             >
               <span className="max-sm:sr-only">Administración</span>
+            </Button>
+          ) : null}
+
+          {isAuthenticated ? (
+            <Button
+              variant="quiet"
+              icon={Ticket}
+              onClick={() => onNavigate?.('/reservas')}
+              className="h-9 min-h-9 px-2.5 text-paper hover:text-concrete-200 sm:px-3"
+            >
+              <span className="max-sm:sr-only">Mis reservas</span>
             </Button>
           ) : null}
 
