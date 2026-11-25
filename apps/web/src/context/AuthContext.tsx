@@ -20,6 +20,8 @@ export interface AuthContextValue {
   idToken: string | null
   isAuthenticated: boolean
   isLoading: boolean
+  /** true mientras se recupera la sesión guardada al cargar la app. Hasta entonces no se sabe si hay sesión. */
+  isRestoring: boolean
   login: (email: string, password: string) => Promise<void>
   register: (
     email: string,
@@ -44,6 +46,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [idToken, setIdToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [oauthError, setOauthError] = useState<string | null>(null)
+  const [isRestoring, setIsRestoring] = useState<boolean>(true)
 
   useEffect(() => {
     let isMounted = true
@@ -63,6 +66,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } catch {
         if (isMounted) {
           setIdToken(null)
+        }
+      } finally {
+        if (isMounted) {
+          setIsRestoring(false)
         }
       }
     }
@@ -121,6 +128,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       idToken,
       isAuthenticated: Boolean(idToken),
       isLoading,
+      isRestoring,
       login,
       register,
       confirmCode,
@@ -128,7 +136,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       oauthError,
       logout,
     }),
-    [idToken, isLoading, login, register, confirmCode, loginWithGoogle, oauthError, logout],
+    [
+      idToken,
+      isLoading,
+      isRestoring,
+      login,
+      register,
+      confirmCode,
+      loginWithGoogle,
+      oauthError,
+      logout,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
