@@ -1,6 +1,7 @@
 import { useAuth } from '@context/AuthContext'
 import { getAdminParqueaderoId } from '@lib/token'
 import { LiveSpacesPage } from '@pages/admin/LiveSpacesPage'
+import { TariffsPage } from '@pages/admin/TariffsPage'
 import { Notice } from '@shared/ui/notice'
 import { Segmented, type SegmentedOption } from '@shared/ui/segmented'
 import { BarChart3, Car, DollarSign } from 'lucide-react'
@@ -78,15 +79,7 @@ export const AdminLayout = ({ currentRoute = '/admin/espacios', onNavigate }: Ad
         {activeSection === 'espacios' ? (
           <LiveSpacesPage />
         ) : activeSection === 'tarifas' ? (
-          <div className="grid gap-4" data-testid="admin-section-tarifas">
-            <h2 className="text-heading font-extrabold text-asphalt-950">
-              Tarifas del parqueadero
-            </h2>
-            <Notice tone="ok" title="Configuración de tarifas">
-              Consulta y actualización de valores de cobro por hora, fracción y día para carros y
-              motos. Esta vista completa estará disponible en la tarea E4.
-            </Notice>
-          </div>
+          <TariffsPage />
         ) : (
           <div className="grid gap-4" data-testid="admin-section-metricas">
             <h2 className="text-heading font-extrabold text-asphalt-950">Métricas operativas</h2>
