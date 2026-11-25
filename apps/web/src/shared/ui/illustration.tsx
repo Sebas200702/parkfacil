@@ -9,6 +9,9 @@ const FILES = {
   'no-results': 'no-results.svg',
   expired: 'expired.svg',
   offline: 'offline.svg',
+  road: 'road.svg',
+  navigation: 'navigation.svg',
+  ride: 'ride.svg',
 } as const
 
 export type IllustrationName = keyof typeof FILES
