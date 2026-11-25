@@ -27,7 +27,10 @@ const NO_RESERVATION: ReservationController = {
   reservation: null,
   notice: null,
   reserving: false,
+  cancelling: false,
+  cancelProblem: null,
   reserve: vi.fn(),
+  cancel: vi.fn(),
 }
 
 const renderDetail = ({

@@ -1,12 +1,22 @@
 import type { VehicleType } from '@features/parkings/parking-types'
-import { createReservation, fetchMyReservations } from '@features/reservations/reservation-api'
+import {
+  cancelReservation,
+  createReservation,
+  fetchMyReservations,
+} from '@features/reservations/reservation-api'
 import { RESERVATION_REFRESH_MS } from '@features/reservations/reservation-consts'
-import type { Reservation, ReserveProblem } from '@features/reservations/reservation-types'
+import type {
+  CancelProblem,
+  Reservation,
+  ReserveProblem,
+} from '@features/reservations/reservation-types'
 import { useCallback, useEffect, useState } from 'react'
+
+type EndKind = 'expired' | 'arrived' | 'cancelled'
 
 /** Lo último que pasó con la reserva y en qué parqueadero, para explicarlo en su detalle. */
 export type ReservationNotice = {
-  kind: ReserveProblem | 'expired' | 'arrived'
+  kind: ReserveProblem | EndKind
   parkingId: string
 }
 
@@ -14,17 +24,25 @@ type ReservationState = {
   reservation: Reservation | null
   notice: ReservationNotice | null
   reserving: boolean
+  cancelling: boolean
+  /** Por qué falló el último intento de cancelar; la reserva sigue activa. */
+  cancelProblem: Exclude<CancelProblem, 'not-active'> | null
 }
 
-const EMPTY: ReservationState = { reservation: null, notice: null, reserving: false }
+const EMPTY: ReservationState = {
+  reservation: null,
+  notice: null,
+  reserving: false,
+  cancelling: false,
+  cancelProblem: null,
+}
 
 const isLive = (reservation: Reservation): boolean =>
   reservation.estado === 'ACTIVA' && Date.parse(reservation.venceEn) > Date.now()
 
-const ended = (reservation: Reservation, kind: 'expired' | 'arrived'): ReservationState => ({
-  reservation: null,
+const ended = (reservation: Reservation, kind: EndKind): ReservationState => ({
+  ...EMPTY,
   notice: { kind, parkingId: reservation.parqueaderoId },
-  reserving: false,
 })
 
 /** Cómo queda el estado según lo que la API dice ahora de la reserva que se venía mostrando. */
@@ -36,7 +54,7 @@ const reconcile = (state: ReservationState, mine: Reservation[]): ReservationSta
   if (!shown) return state
   const latest = mine.find((reservation) => reservation.id === shown.id)
   if (latest?.estado === 'CUMPLIDA') return ended(shown, 'arrived')
-  if (latest?.estado === 'CANCELADA') return { ...state, reservation: null }
+  if (latest?.estado === 'CANCELADA') return ended(shown, 'cancelled')
   return ended(shown, 'expired')
 }
 
@@ -97,7 +115,7 @@ export const useReservation = () => {
       const result = await createReservation(parkingId, vehicle)
 
       if (result.ok) {
-        setState({ reservation: result.reservation, notice: null, reserving: false })
+        setState({ ...EMPTY, reservation: result.reservation })
         return
       }
       setState((previous) => ({
@@ -111,7 +129,26 @@ export const useReservation = () => {
     [sync],
   )
 
-  return { ...state, reserve }
+  const cancel = useCallback(async () => {
+    if (!reservation) return
+    setState((previous) => ({ ...previous, cancelling: true, cancelProblem: null }))
+    const result = await cancelReservation(reservation.id)
+
+    if (result.ok) {
+      setState(ended(reservation, 'cancelled'))
+      return
+    }
+    const { problem } = result
+    if (problem === 'not-active') {
+      // Ya no estaba activa: la API dice si venció, se cumplió o se canceló en otro lado.
+      setState((previous) => ({ ...previous, cancelling: false }))
+      await sync()
+      return
+    }
+    setState((previous) => ({ ...previous, cancelling: false, cancelProblem: problem }))
+  }, [reservation, sync])
+
+  return { ...state, reserve, cancel }
 }
 
 export type ReservationController = ReturnType<typeof useReservation>

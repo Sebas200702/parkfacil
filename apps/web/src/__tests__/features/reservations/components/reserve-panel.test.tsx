@@ -34,17 +34,27 @@ const renderPanel = ({
   ...controller
 }: PanelOptions = {}) => {
   const reserve = vi.fn()
+  const cancel = vi.fn()
   const onOpenParking = vi.fn()
   render(
     <ReservePanel
       parking={parking}
       vehicle={vehicle}
-      controller={{ reservation: null, notice: null, reserving: false, reserve, ...controller }}
+      controller={{
+        reservation: null,
+        notice: null,
+        reserving: false,
+        cancelling: false,
+        cancelProblem: null,
+        reserve,
+        cancel,
+        ...controller,
+      }}
       reservedParkingName={reservedParkingName}
       onOpenParking={onOpenParking}
     />,
   )
-  return { reserve, onOpenParking }
+  return { reserve, cancel, onOpenParking }
 }
 
 beforeEach(() => {
@@ -137,6 +147,43 @@ describe('ReservePanel con reserva', () => {
 
     expect(screen.getByRole('timer').textContent).toBe('02:00')
     expect(screen.getByText('Queda poco')).toBeDefined()
+  })
+
+  it('pide confirmar antes de cancelar', () => {
+    const { cancel } = renderPanel({ reservation: RESERVATION })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar reserva' }))
+
+    expect(cancel).not.toHaveBeenCalled()
+    expect(screen.getByRole('group', { name: '¿Cancelar la reserva?' })).toBeDefined()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, cancelar' }))
+
+    expect(cancel).toHaveBeenCalledTimes(1)
+  })
+
+  it('deja arrepentirse sin cancelar', () => {
+    const { cancel } = renderPanel({ reservation: RESERVATION })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar reserva' }))
+    fireEvent.click(screen.getByRole('button', { name: 'No, conservar' }))
+
+    expect(cancel).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Cancelar reserva' })).toBeDefined()
+  })
+
+  it('si no se pudo cancelar dice que la reserva sigue activa', () => {
+    renderPanel({ reservation: RESERVATION, cancelProblem: 'connection' })
+
+    expect(screen.getByText('No pudimos cancelar')).toBeDefined()
+    expect(screen.getByRole('timer')).toBeDefined()
+  })
+
+  it('tras cancelar avisa que el cupo quedó libre y deja reservar otra vez', () => {
+    renderPanel({ notice: { kind: 'cancelled', parkingId: 'centro-93' } })
+
+    expect(screen.getByText('Reserva cancelada')).toBeDefined()
+    expect(screen.getByRole('button', { name: 'Reservar cupo' })).toBeDefined()
   })
 
   it('en otro parqueadero dice dónde está la reserva y lleva a ella', () => {
