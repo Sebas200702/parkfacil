@@ -34,4 +34,19 @@ describe('BayMap', () => {
     expect(container.querySelectorAll('ul')).toHaveLength(2)
     expect(container.querySelectorAll('hr')).toHaveLength(1)
   })
+
+  it('en modo resumen no muestra códigos y se anuncia solo por su nombre', () => {
+    const { container } = render(<BayMap label="Dibujo" bays={BAYS} columns={2} summary />)
+
+    expect(screen.getByRole('region', { name: 'Dibujo' })).toBeDefined()
+    expect(screen.queryByText('A-01')).toBeNull()
+    expect(container.querySelector('[aria-hidden="true"] ul')).not.toBeNull()
+    expect(container.querySelectorAll('[data-state="taken"] svg')).toHaveLength(2)
+  })
+
+  it('en modo compacto dibuja bahías más bajas', () => {
+    const { container } = render(<BayMap label="Dibujo" bays={BAYS} columns={2} compact />)
+
+    expect(container.querySelector('li > span[aria-hidden="true"]')?.className).toContain('h-16')
+  })
 })
