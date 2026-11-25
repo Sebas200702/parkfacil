@@ -36,7 +36,10 @@ const count = (spaces: Espacio[], estado: SpaceState) =>
 const Stat = ({ label, value, state }: { label: string; value: number; state: SpaceState }) => (
   <div
     data-testid={`resumen-${state}`}
-    className={cx('grid gap-1 rounded-plate border-2 px-4 py-3', TILE[state])}
+    className={cx(
+      'flex items-center justify-between gap-2 rounded-plate border-2 px-4 py-2 sm:grid sm:gap-1 sm:py-3',
+      TILE[state],
+    )}
   >
     <BayStatus state={BAY[state]}>{label}</BayStatus>
     <b className="font-mono text-figure tabular-nums text-asphalt-950">{value}</b>
@@ -97,7 +100,7 @@ export const LiveSpacesPage = () => {
             value={filter}
             onChange={setFilter}
           />
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-3 sm:gap-3">
             <Stat label="Libres" value={libres} state="LIBRE" />
             <Stat label="Reservados" value={count(visible, 'RESERVADO')} state="RESERVADO" />
             <Stat label="Ocupados" value={count(visible, 'OCUPADO')} state="OCUPADO" />

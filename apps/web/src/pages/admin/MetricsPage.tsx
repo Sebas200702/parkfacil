@@ -44,24 +44,34 @@ const HoursChart = ({ entries, peak }: { entries: number[]; peak: number | null 
             key={hour}
             aria-label={`${formatHour(hour)}: ${count} ${count === 1 ? 'entrada' : 'entradas'}${isPeak ? ' (hora pico)' : ''}`}
             data-peak={isPeak || undefined}
-            className="grid h-full grid-rows-[1fr_auto] items-end justify-items-center gap-1"
+            className="flex h-full flex-col items-center justify-end gap-1"
           >
-            <span aria-hidden="true" className="grid h-full w-full items-end justify-items-center">
-              <span
-                className={cx('text-[0.625rem] font-mono', isPeak && 'font-bold text-brand-600')}
-              >
-                {count}
-              </span>
-              <span
-                className={cx(
-                  'w-full rounded-t-bay',
-                  isPeak ? 'bg-brand-600' : 'bg-asphalt-400',
-                  count === 0 && 'opacity-30',
-                )}
-                style={{ height: `${Math.max((count / max) * 80, 3)}%` }}
-              />
+            {/* En pantallas pequeñas solo se rotula la hora pico y una de cada tres horas. */}
+            <span
+              aria-hidden="true"
+              className={cx(
+                'font-mono text-[0.625rem] leading-none',
+                isPeak ? 'font-bold text-brand-600' : 'max-sm:hidden',
+              )}
+            >
+              {count}
             </span>
-            <span aria-hidden="true" className="font-mono text-[0.625rem] text-asphalt-600">
+            <span
+              aria-hidden="true"
+              className={cx(
+                'w-full rounded-t-bay',
+                isPeak ? 'bg-brand-600' : 'bg-asphalt-400',
+                count === 0 && 'opacity-30',
+              )}
+              style={{ height: `${Math.max((count / max) * 70, 2)}%` }}
+            />
+            <span
+              aria-hidden="true"
+              className={cx(
+                'font-mono text-[0.625rem] leading-none text-asphalt-600',
+                hour % 3 !== 0 && 'max-sm:invisible',
+              )}
+            >
               {hour}
             </span>
           </li>
