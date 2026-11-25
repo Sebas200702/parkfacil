@@ -1,0 +1,585 @@
+
+openapi: 3.0.3
+info:
+  title: ParkFácil API
+  version: 1.0.0
+  description: API para consultar parqueaderos, gestionar reservas, administrar espacios y recibir eventos de sensores.
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local de desarrollo
+  - url: https://{apiId}.execute-api.{region}.amazonaws.com
+    description: AWS API Gateway
+    variables:
+      apiId:
+        default: your-api-id
+      region:
+        default: us-east-1
+
+tags:
+  - name: Parqueaderos
+  - name: Reservas
+  - name: Administración
+  - name: Sensores
+
+paths:
+  /parqueaderos:
+    get:
+      tags: [Parqueaderos]
+      summary: Listar parqueaderos
+      security: []
+      responses:
+        '200':
+          description: Lista de parqueaderos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseParkings'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /parqueaderos/{id}:
+    get:
+      tags: [Parqueaderos]
+      summary: Consultar un parqueadero
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Parqueadero encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseParking'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /reservas:
+    post:
+      tags: [Reservas]
+      summary: Crear una reserva
+      security:
+        - CognitoBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReservation'
+            example:
+              parqueaderoId: parq-001
+              tipo: CARRO
+      responses:
+        '201':
+          description: Reserva creada; vence en 15 minutos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseReservation'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Sin capacidad o ya existe una reserva activa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /reservas/{id}:
+    delete:
+      tags: [Reservas]
+      summary: Cancelar una reserva propia
+      security:
+        - CognitoBearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reserva cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseReservation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: La reserva no está activa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /reservas/mias:
+    get:
+      tags: [Reservas]
+      summary: Consultar las reservas del conductor autenticado
+      security:
+        - CognitoBearer: []
+      responses:
+        '200':
+          description: Reservas del conductor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseReservations'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/espacios:
+    get:
+      tags: [Administración]
+      summary: Consultar espacios del parqueadero administrado
+      security:
+        - CognitoBearer: []
+      responses:
+        '200':
+          description: Lista de espacios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSpaces'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/tarifas:
+    put:
+      tags: [Administración]
+      summary: Actualizar tarifa por tipo de vehículo
+      security:
+        - CognitoBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateUpdate'
+            example:
+              tipo: CARRO
+              valorHora: 5000
+              valorFraccion: 1500
+              valorDia: 30000
+      responses:
+        '200':
+          description: Parqueadero actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseParking'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/metricas:
+    get:
+      tags: [Administración]
+      summary: Consultar métricas del parqueadero
+      security:
+        - CognitoBearer: []
+      responses:
+        '200':
+          description: Métricas de ocupación y actividad
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseMetrics'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /sensores/eventos:
+    post:
+      tags: [Sensores]
+      summary: Recibir evento de un sensor
+      security:
+        - SensorApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SensorEvent'
+            example:
+              parqueaderoId: parq-001
+              espacioId: espacio-001
+              estado: OCUPADO
+              ts: 1764000000
+      responses:
+        '200':
+          description: Evento procesado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseSensorResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflicto por actualización concurrente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '503':
+          description: Endpoint de sensores deshabilitado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+components:
+  securitySchemes:
+    CognitoBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT emitido por Amazon Cognito.
+    SensorApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details: {}
+
+    ApiErrorResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          nullable: true
+        status:
+          type: integer
+        error:
+          $ref: '#/components/schemas/ApiError'
+      required: [data, status, error]
+
+    ApiResponseParkings:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Parking'
+
+    ApiResponseParking:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Parking'
+
+    ApiResponseReservation:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Reservation'
+
+    ApiResponseReservations:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Reservation'
+
+    ApiResponseSpaces:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Space'
+
+    ApiResponseMetrics:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Metrics'
+
+    ApiResponseSensorResult:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/SensorResult'
+
+    ApiResponseBase:
+      type: object
+      properties:
+        status:
+          type: integer
+        error:
+          type: object
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ApiError'
+      required: [data, status, error]
+
+    VehicleType:
+      type: string
+      enum: [CARRO, MOTO]
+
+    SpaceState:
+      type: string
+      enum: [LIBRE, OCUPADO, RESERVADO]
+
+    ReservationState:
+      type: string
+      enum: [ACTIVA, CUMPLIDA, VENCIDA, CANCELADA]
+
+    Rate:
+      type: object
+      properties:
+        valorHora:
+          type: integer
+        valorFraccion:
+          type: integer
+        valorDia:
+          type: integer
+      required: [valorHora, valorFraccion, valorDia]
+
+    Parking:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        direccion:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        capacidad:
+          $ref: '#/components/schemas/VehicleCounts'
+        cupos:
+          $ref: '#/components/schemas/VehicleCounts'
+        tarifas:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Rate'
+      required: [id, nombre, direccion, lat, lng, capacidad, cupos, tarifas]
+
+    VehicleCounts:
+      type: object
+      properties:
+        CARRO:
+          type: integer
+        MOTO:
+          type: integer
+      required: [CARRO, MOTO]
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: string
+        parqueaderoId:
+          type: string
+        espacioId:
+          type: string
+        usuarioId:
+          type: string
+        tipo:
+          $ref: '#/components/schemas/VehicleType'
+        estado:
+          $ref: '#/components/schemas/ReservationState'
+        creadaEn:
+          type: string
+          format: date-time
+        venceEn:
+          type: string
+          format: date-time
+        finalizadaEn:
+          type: string
+          format: date-time
+      required: [id, parqueaderoId, espacioId, usuarioId, tipo, estado, creadaEn, venceEn]
+
+    Space:
+      type: object
+      properties:
+        parqueaderoId:
+          type: string
+        id:
+          type: string
+        tipo:
+          $ref: '#/components/schemas/VehicleType'
+        estado:
+          $ref: '#/components/schemas/SpaceState'
+        reservaId:
+          type: string
+        actualizadoEn:
+          type: string
+          format: date-time
+      required: [parqueaderoId, id, tipo, estado, actualizadoEn]
+
+    CreateReservation:
+      type: object
+      properties:
+        parqueaderoId:
+          type: string
+          minLength: 1
+        tipo:
+          $ref: '#/components/schemas/VehicleType'
+      required: [parqueaderoId, tipo]
+
+    RateUpdate:
+      type: object
+      properties:
+        tipo:
+          $ref: '#/components/schemas/VehicleType'
+        valorHora:
+          type: integer
+          minimum: 0
+        valorFraccion:
+          type: integer
+          minimum: 0
+        valorDia:
+          type: integer
+          minimum: 0
+      required: [tipo, valorHora, valorFraccion, valorDia]
+
+    TypeOccupancy:
+      type: object
+      properties:
+        capacidad:
+          type: integer
+        libres:
+          type: integer
+        ocupacionPct:
+          type: number
+      required: [capacidad, libres, ocupacionPct]
+
+    Metrics:
+      type: object
+      properties:
+        capacidad:
+          type: integer
+        ocupados:
+          type: integer
+        ocupacionPct:
+          type: number
+        porTipo:
+          type: object
+          properties:
+            CARRO:
+              $ref: '#/components/schemas/TypeOccupancy'
+            MOTO:
+              $ref: '#/components/schemas/TypeOccupancy'
+        entradasPorHora:
+          type: array
+          items:
+            type: integer
+        horaPico:
+          type: integer
+          nullable: true
+        ingresosEstimados:
+          type: integer
+        salidas:
+          type: integer
+      required: [capacidad, ocupados, ocupacionPct, porTipo, entradasPorHora, horaPico, ingresosEstimados, salidas]
+
+    SensorEvent:
+      type: object
+      properties:
+        parqueaderoId:
+          type: string
+          minLength: 1
+        espacioId:
+          type: string
+          minLength: 1
+        estado:
+          type: string
+          enum: [LIBRE, OCUPADO]
+        ts:
+          type: integer
+          minimum: 1
+          description: Fecha del evento en segundos epoch.
+      required: [parqueaderoId, espacioId, estado]
+
+    SensorResult:
+      type: object
+      properties:
+        cambio:
+          type: boolean
+        estado:
+          $ref: '#/components/schemas/SpaceState'
+      required: [cambio, estado]
+
+  responses:
+    ValidationError:
+      description: Datos inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Unauthorized:
+      description: No autenticado o API Key inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Forbidden:
+      description: Permisos insuficientes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    InternalError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
