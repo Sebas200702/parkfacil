@@ -1,14 +1,20 @@
 import { useReservation } from '@features/reservations/hooks/use-reservation'
-import { createReservation, fetchMyReservations } from '@features/reservations/reservation-api'
+import {
+  cancelReservation,
+  createReservation,
+  fetchMyReservations,
+} from '@features/reservations/reservation-api'
 import type { Reservation } from '@features/reservations/reservation-types'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@features/reservations/reservation-api', () => ({
+  cancelReservation: vi.fn(),
   createReservation: vi.fn(),
   fetchMyReservations: vi.fn(),
 }))
 
+const cancelMock = vi.mocked(cancelReservation)
 const createMock = vi.mocked(createReservation)
 const fetchMock = vi.mocked(fetchMyReservations)
 
@@ -40,6 +46,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers()
+  cancelMock.mockReset()
   createMock.mockReset()
   fetchMock.mockReset()
 })
@@ -110,6 +117,42 @@ describe('useReservation', () => {
     fetchMock.mockResolvedValue([{ ...RESERVATION, estado: 'CUMPLIDA' }])
 
     await act(() => vi.advanceTimersByTimeAsync(20_000))
+
+    expect(result.current.reservation).toBeNull()
+    expect(result.current.notice).toEqual({ kind: 'arrived', parkingId: 'centro-93' })
+  })
+
+  it('cancela la reserva activa y avisa que quedó cancelada', async () => {
+    fetchMock.mockResolvedValue([RESERVATION])
+    cancelMock.mockResolvedValue({ ok: true, reservation: { ...RESERVATION, estado: 'CANCELADA' } })
+    const { result } = await mount()
+
+    await act(() => result.current.cancel())
+
+    expect(cancelMock).toHaveBeenCalledWith('res-1')
+    expect(result.current.reservation).toBeNull()
+    expect(result.current.notice).toEqual({ kind: 'cancelled', parkingId: 'centro-93' })
+  })
+
+  it('si no se pudo cancelar conserva la reserva y dice por qué', async () => {
+    fetchMock.mockResolvedValue([RESERVATION])
+    cancelMock.mockResolvedValue({ ok: false, problem: 'connection' })
+    const { result } = await mount()
+
+    await act(() => result.current.cancel())
+
+    expect(result.current.reservation).toEqual(RESERVATION)
+    expect(result.current.cancelProblem).toBe('connection')
+    expect(result.current.cancelling).toBe(false)
+  })
+
+  it('si al cancelar ya no estaba activa pregunta a la API cómo terminó', async () => {
+    fetchMock.mockResolvedValue([RESERVATION])
+    cancelMock.mockResolvedValue({ ok: false, problem: 'not-active' })
+    const { result } = await mount()
+    fetchMock.mockResolvedValue([{ ...RESERVATION, estado: 'CUMPLIDA' }])
+
+    await act(() => result.current.cancel())
 
     expect(result.current.reservation).toBeNull()
     expect(result.current.notice).toEqual({ kind: 'arrived', parkingId: 'centro-93' })

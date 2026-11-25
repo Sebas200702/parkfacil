@@ -1,50 +1,13 @@
 import { VEHICLE_PLURAL } from '@features/parkings/parking-consts'
 import type { Parking, VehicleType } from '@features/parkings/parking-types'
-import type {
-  ReservationController,
-  ReservationNotice,
-} from '@features/reservations/hooks/use-reservation'
+import type { ReservationController } from '@features/reservations/hooks/use-reservation'
 import { Button } from '@shared/ui/button'
 import { ButtonLink } from '@shared/ui/button-link'
-import { Notice, type NoticeTone } from '@shared/ui/notice'
+import { Notice } from '@shared/ui/notice'
 import { LogIn, Ticket } from 'lucide-react'
+import { CancelReservation } from './cancel-reservation'
+import { ReservationNoticeBox } from './reservation-notice'
 import { ReservationTicket } from './reservation-ticket'
-
-type NoticeCopy = { tone: NoticeTone; title: string; body: string }
-
-// Cada aviso dice qué pasó y qué hacer; nunca muestra el código del error.
-const NOTICES: Record<ReservationNotice['kind'], NoticeCopy> = {
-  'no-capacity': {
-    tone: 'error',
-    title: 'Sin cupos',
-    body: 'Se llenó mientras reservabas. Mira otro parqueadero cerca.',
-  },
-  'active-reservation': {
-    tone: 'warn',
-    title: 'Ya tienes una reserva activa',
-    body: 'Solo puedes tener una a la vez.',
-  },
-  session: {
-    tone: 'error',
-    title: 'Tu sesión venció',
-    body: 'Vuelve a entrar para reservar.',
-  },
-  connection: {
-    tone: 'error',
-    title: 'No pudimos reservar',
-    body: 'Revisa tu señal e intenta de nuevo.',
-  },
-  expired: {
-    tone: 'warn',
-    title: 'Tu reserva venció',
-    body: 'Pasaron los 15 minutos y el cupo quedó libre. Puedes reservar otra vez.',
-  },
-  arrived: {
-    tone: 'ok',
-    title: 'Llegaste a tu cupo',
-    body: 'Tu reserva quedó cumplida.',
-  },
-}
 
 type ReservePanelProps = {
   parking: Parking
@@ -103,7 +66,16 @@ export const ReservePanel = ({
   const { reservation, notice } = controller
 
   if (reservation?.parqueaderoId === parking.id) {
-    return <ReservationTicket reservation={reservation} />
+    return (
+      <div className="grid gap-3">
+        <ReservationTicket reservation={reservation} />
+        <CancelReservation
+          cancel={controller.cancel}
+          cancelling={controller.cancelling}
+          cancelProblem={controller.cancelProblem}
+        />
+      </div>
+    )
   }
 
   if (reservation) {
@@ -125,15 +97,9 @@ export const ReservePanel = ({
     )
   }
 
-  const copy = notice?.parkingId === parking.id ? NOTICES[notice.kind] : null
-
   return (
     <div className="grid gap-3">
-      {copy ? (
-        <Notice tone={copy.tone} title={copy.title}>
-          {copy.body}
-        </Notice>
-      ) : null}
+      {notice?.parkingId === parking.id ? <ReservationNoticeBox kind={notice.kind} /> : null}
       <ReserveAction parking={parking} vehicle={vehicle} controller={controller} />
     </div>
   )
