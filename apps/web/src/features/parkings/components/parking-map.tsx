@@ -44,6 +44,8 @@ export const ParkingMap = ({
   const userRef = useRef<L.LayerGroup | null>(null)
   const onSelectRef = useRef(onSelect)
   const fittedRef = useRef('')
+  const boundsRef = useRef<L.LatLngBounds | null>(null)
+  const movedRef = useRef(false)
   const pannedRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -68,14 +70,32 @@ export const ParkingMap = ({
     userRef.current = L.layerGroup().addTo(map)
     mapRef.current = map
 
-    const observer = new ResizeObserver(() => map.invalidateSize())
+    // Mientras la persona no haya movido el mapa, un cambio de tamaño vuelve a encuadrar los
+    // parqueaderos. Si el mapa nace sin tamaño (panel oculto, giro del teléfono) el primer
+    // encuadre queda demasiado lejos.
+    const markMoved = () => {
+      movedRef.current = true
+    }
+    container.addEventListener('pointerdown', markMoved)
+    container.addEventListener('wheel', markMoved, { passive: true })
+
+    const observer = new ResizeObserver(() => {
+      map.invalidateSize()
+      if (!movedRef.current && boundsRef.current) {
+        map.fitBounds(boundsRef.current, { padding: FIT_PADDING, maxZoom: 15, animate: false })
+      }
+    })
     observer.observe(container)
 
     return () => {
       observer.disconnect()
+      container.removeEventListener('pointerdown', markMoved)
+      container.removeEventListener('wheel', markMoved)
       map.remove()
       mapRef.current = null
       fittedRef.current = ''
+      boundsRef.current = null
+      movedRef.current = false
     }
   }, [])
 
@@ -101,11 +121,15 @@ export const ParkingMap = ({
       const bounds = L.latLngBounds(parkings.map((parking) => [parking.lat, parking.lng]))
       map.fitBounds(bounds, { padding: FIT_PADDING, maxZoom: 15 })
       fittedRef.current = idsKey
+      boundsRef.current = bounds
     }
 
     if (selectedId !== pannedRef.current) {
       const target = parkings.find((parking) => parking.id === selectedId)
-      if (target) map.panTo([target.lat, target.lng])
+      if (target) {
+        map.panTo([target.lat, target.lng])
+        movedRef.current = true
+      }
       pannedRef.current = selectedId
     }
   }, [parkings, vehicle, selectedId])
@@ -126,6 +150,7 @@ export const ParkingMap = ({
       className: 'fill-asphalt-950 stroke-paper',
     }).addTo(layer)
     map.setView([userPosition.lat, userPosition.lng], 15)
+    movedRef.current = true
   }, [userPosition])
 
   return (
