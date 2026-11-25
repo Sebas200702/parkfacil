@@ -1,6 +1,6 @@
-import LoginPage from './login/page'
+import { LandingScreen } from './landing-screen'
 
-/** Ruta "/": la primera vista del dominio es el inicio de sesión. */
+/** Ruta "/": la landing pública. Es la primera vista del dominio. */
 export default function HomePage() {
-  return <LoginPage />
+  return <LandingScreen />
 }
