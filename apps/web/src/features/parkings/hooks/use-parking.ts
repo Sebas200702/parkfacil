@@ -16,8 +16,9 @@ const initialState = (initial: Parking | null): ParkingState =>
 /**
  * Un parqueadero con sus cupos al día. Arranca con lo que ya traía la lista, para no mostrar
  * una pantalla de carga, y lo refresca solo mientras la pestaña está visible.
+ * Al cambiar `revision` (por ejemplo, tras reservar) vuelve a pedir los cupos de inmediato.
  */
-export const useParking = (id: string, initial: Parking | null) => {
+export const useParking = (id: string, initial: Parking | null, revision = '') => {
   const [state, setState] = useState<ParkingState>(() => initialState(initial))
 
   const load = useCallback(
@@ -35,6 +36,7 @@ export const useParking = (id: string, initial: Parking | null) => {
     [id],
   )
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: revision solo vuelve a disparar la carga
   useEffect(() => {
     const controller = new AbortController()
     void load(controller.signal)
@@ -47,7 +49,7 @@ export const useParking = (id: string, initial: Parking | null) => {
       controller.abort()
       window.clearInterval(timer)
     }
-  }, [load])
+  }, [load, revision])
 
   const reload = useCallback(() => {
     setState(LOADING)

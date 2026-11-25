@@ -10,8 +10,11 @@ type ParkingsState = {
 
 const LOADING: ParkingsState = { status: 'loading', parkings: [] }
 
-/** Parqueaderos con sus cupos; se refrescan solos mientras la pestaña está visible. */
-export const useParkings = () => {
+/**
+ * Parqueaderos con sus cupos; se refrescan solos mientras la pestaña está visible.
+ * Al cambiar `revision` (por ejemplo, tras reservar) vuelve a pedirlos de inmediato.
+ */
+export const useParkings = (revision = '') => {
   const [state, setState] = useState<ParkingsState>(LOADING)
 
   const load = useCallback(async (signal?: AbortSignal) => {
@@ -27,6 +30,7 @@ export const useParkings = () => {
     }
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: revision solo vuelve a disparar la carga
   useEffect(() => {
     const controller = new AbortController()
     void load(controller.signal)
@@ -39,7 +43,7 @@ export const useParkings = () => {
       controller.abort()
       window.clearInterval(timer)
     }
-  }, [load])
+  }, [load, revision])
 
   const reload = useCallback(() => {
     setState(LOADING)

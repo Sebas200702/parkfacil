@@ -2,6 +2,7 @@ import { ParkingDetail } from '@features/parkings/components/parking-detail'
 import { fetchParking } from '@features/parkings/parking-api'
 import { MOCK_PARKINGS } from '@features/parkings/parking-mocks'
 import type { Parking, VehicleType } from '@features/parkings/parking-types'
+import type { ReservationController } from '@features/reservations/hooks/use-reservation'
 import type { GeoPoint } from '@shared/utils/geo-util'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -19,6 +20,14 @@ type DetailOptions = {
   origin?: GeoPoint | null
   onVehicleChange?: (vehicle: VehicleType) => void
   onBack?: () => void
+  reservations?: Partial<ReservationController>
+}
+
+const NO_RESERVATION: ReservationController = {
+  reservation: null,
+  notice: null,
+  reserving: false,
+  reserve: vi.fn(),
 }
 
 const renderDetail = ({
@@ -28,6 +37,7 @@ const renderDetail = ({
   origin = null,
   onVehicleChange = vi.fn(),
   onBack = vi.fn(),
+  reservations = {},
 }: DetailOptions = {}) =>
   render(
     <ParkingDetail
@@ -36,6 +46,8 @@ const renderDetail = ({
       vehicle={vehicle}
       onVehicleChange={onVehicleChange}
       origin={origin}
+      reservations={{ ...NO_RESERVATION, ...reservations }}
+      onOpenParking={vi.fn()}
       onBack={onBack}
     />,
   )
@@ -92,6 +104,54 @@ describe('ParkingDetail', () => {
 
     expect(screen.getByText('Este parqueadero no recibe motos.')).toBeDefined()
     expect(screen.queryByRole('definition')).toBeNull()
+  })
+
+  it('ofrece reservar un cupo del tipo de vehículo elegido', () => {
+    const reserve = vi.fn()
+    renderDetail({ vehicle: 'MOTO', reservations: { reserve } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reservar cupo' }))
+
+    expect(reserve).toHaveBeenCalledWith('centro-93', 'MOTO')
+  })
+
+  it('con una reserva aquí muestra el tiquete y marca la bahía apartada', () => {
+    const reservation = {
+      id: 'res-1',
+      parqueaderoId: 'centro-93',
+      espacioId: 'C-07',
+      usuarioId: 'user-1',
+      tipo: 'CARRO' as const,
+      estado: 'ACTIVA' as const,
+      creadaEn: new Date().toISOString(),
+      venceEn: new Date(Date.now() + 900_000).toISOString(),
+    }
+
+    const { container } = renderDetail({ reservations: { reservation } })
+
+    expect(screen.getByRole('timer')).toBeDefined()
+    expect(screen.getByText('C-07')).toBeDefined()
+    expect(container.querySelectorAll('[data-state="held"]')).toHaveLength(1)
+  })
+
+  it('vuelve a pedir los cupos cuando cambia la reserva', async () => {
+    const { rerender } = renderDetail()
+    await waitFor(() => expect(fetchParkingMock).toHaveBeenCalledTimes(1))
+
+    rerender(
+      <ParkingDetail
+        id={PARQUE_93.id}
+        initial={PARQUE_93}
+        vehicle="CARRO"
+        onVehicleChange={vi.fn()}
+        origin={null}
+        reservations={{ ...NO_RESERVATION, notice: { kind: 'expired', parkingId: PARQUE_93.id } }}
+        onOpenParking={vi.fn()}
+        onBack={vi.fn()}
+      />,
+    )
+
+    await waitFor(() => expect(fetchParkingMock).toHaveBeenCalledTimes(2))
   })
 
   it('añade la distancia cuando se conoce la ubicación', () => {

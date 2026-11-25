@@ -1,7 +1,7 @@
 import { PLAN_BAYS, planBays } from '@features/parkings/utils/lot-plan-util'
 import { describe, expect, it } from 'vitest'
 
-const count = (bays: ReturnType<typeof planBays>, state: 'free' | 'taken') =>
+const count = (bays: ReturnType<typeof planBays>, state: 'free' | 'taken' | 'held') =>
   bays.filter((bay) => bay.state === state).length
 
 describe('planBays', () => {
@@ -49,6 +49,21 @@ describe('planBays', () => {
 
     expect(taken.some((index) => index < 6)).toBe(true)
     expect(taken.some((index) => index >= 6)).toBe(true)
+  })
+
+  it('con una reserva propia una de las bahías no libres lleva el tiquete', () => {
+    const bays = planBays(4, 12, 'car', true)
+
+    expect(count(bays, 'held')).toBe(1)
+    expect(count(bays, 'taken')).toBe(7)
+    expect(count(bays, 'free')).toBe(4)
+  })
+
+  it('muestra el tiquete aunque los conteos aún no descuenten la reserva', () => {
+    const bays = planBays(4, 4, 'moto', true)
+
+    expect(count(bays, 'held')).toBe(1)
+    expect(count(bays, 'free')).toBe(3)
   })
 
   it('tolera datos inconsistentes', () => {
