@@ -1,13 +1,18 @@
 import { fetchParking } from '@features/parkings/parking-api'
-import { createReservation, fetchMyReservations } from '@features/reservations/reservation-api'
+import {
+  cancelReservation,
+  createReservation,
+  fetchMyReservations,
+} from '@features/reservations/reservation-api'
 import type { Reservation } from '@features/reservations/reservation-types'
 import { api } from '@lib/api'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@lib/api', () => ({ api: { get: vi.fn(), post: vi.fn() } }))
+vi.mock('@lib/api', () => ({ api: { get: vi.fn(), post: vi.fn(), delete: vi.fn() } }))
 
 const get = vi.mocked(api.get)
 const post = vi.mocked(api.post)
+const del = vi.mocked(api.delete)
 
 const RESERVATION: Reservation = {
   id: 'res-1',
@@ -34,6 +39,7 @@ afterEach(() => {
   vi.unstubAllEnvs()
   get.mockReset()
   post.mockReset()
+  del.mockReset()
 })
 
 describe('createReservation con la API', () => {
@@ -82,6 +88,31 @@ describe('fetchMyReservations con la API', () => {
   })
 })
 
+describe('cancelReservation con la API', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.test')
+  })
+
+  it('pide DELETE /reservas/{id}', async () => {
+    const cancelled = { ...RESERVATION, estado: 'CANCELADA' as const }
+    del.mockResolvedValue({ data: cancelled, status: 200, error: null })
+
+    expect(await cancelReservation('res 1')).toEqual({ ok: true, reservation: cancelled })
+    expect(del).toHaveBeenCalledWith('/reservas/res%201')
+  })
+
+  it.each([
+    [409, 'RESERVATION_NOT_ACTIVE', 'not-active'],
+    [404, 'NOT_FOUND', 'not-active'],
+    [401, 'UNAUTHORIZED', 'session'],
+    [0, 'NETWORK_ERROR', 'connection'],
+  ])('traduce el rechazo %i %s a "%s"', async (status, code, problem) => {
+    del.mockResolvedValue(rejected(status, code))
+
+    expect(await cancelReservation('res-1')).toEqual({ ok: false, problem })
+  })
+})
+
 describe('reservas de demostración (sin URL de API)', () => {
   beforeEach(() => {
     vi.stubEnv('NEXT_PUBLIC_API_URL', '')
@@ -110,6 +141,25 @@ describe('reservas de demostración (sin URL de API)', () => {
       ok: false,
       problem: 'active-reservation',
     })
+  })
+
+  it('cancelar libera el cupo y deja reservar otra vez', async () => {
+    const first = await createReservation('centro-93', 'CARRO')
+    const id = first.ok ? first.reservation.id : ''
+
+    expect((await cancelReservation(id)).ok).toBe(true)
+
+    expect((await fetchMyReservations())[0]?.estado).toBe('CANCELADA')
+    expect((await fetchParking('centro-93'))?.cupos.CARRO).toBe(5)
+    expect((await createReservation('usaquen', 'CARRO')).ok).toBe(true)
+  })
+
+  it('no cancela dos veces la misma reserva', async () => {
+    const first = await createReservation('centro-93', 'CARRO')
+    const id = first.ok ? first.reservation.id : ''
+    await cancelReservation(id)
+
+    expect(await cancelReservation(id)).toEqual({ ok: false, problem: 'not-active' })
   })
 
   it('rechaza reservar donde no quedan cupos', async () => {
