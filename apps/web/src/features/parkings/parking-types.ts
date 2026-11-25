@@ -20,10 +20,3 @@ export interface Parking {
   cupos: PerType
   tarifas: Partial<Record<VehicleType, Rate>>
 }
-
-/** Forma de todas las respuestas de la API. */
-export interface ApiEnvelope<T> {
-  data: T
-  status: number
-  error: { code: string; message: string } | null
-}

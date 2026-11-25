@@ -1,23 +1,28 @@
+import { api } from '@lib/api'
 import { MOCK_PARKINGS } from './parking-mocks'
-import type { ApiEnvelope, Parking } from './parking-types'
+import type { Parking } from './parking-types'
 
-const API_URL = import.meta.env.VITE_API_URL
+/** Sin URL de API el frontend trabaja con los datos de demostración. */
+const isDemo = (): boolean => !import.meta.env.VITE_API_URL
 
-/**
- * GET /parqueaderos (público). Sin URL de API devuelve los datos de demostración,
- * para avanzar mientras el lab no esté desplegado.
- */
-export const fetchParkings = async (
-  signal?: AbortSignal,
-  apiUrl: string | undefined = API_URL,
-): Promise<Parking[]> => {
-  if (!apiUrl) return MOCK_PARKINGS
+/** GET /parqueaderos (público). */
+export const fetchParkings = async (signal?: AbortSignal): Promise<Parking[]> => {
+  if (isDemo()) return MOCK_PARKINGS
 
-  const response = await fetch(`${apiUrl}/parqueaderos`, { signal })
-  const body = (await response.json()) as ApiEnvelope<Parking[]>
+  const { data, error } = await api.get<Parking[]>('/parqueaderos', { signal })
+  if (error || !data) throw new Error(error?.message ?? 'La API no devolvió parqueaderos')
+  return data
+}
 
-  if (!response.ok || body.error) {
-    throw new Error(body.error?.message ?? `La API respondió ${response.status}`)
-  }
-  return body.data
+/** GET /parqueaderos/{id} (público). Devuelve null cuando el parqueadero no existe (404). */
+export const fetchParking = async (id: string, signal?: AbortSignal): Promise<Parking | null> => {
+  if (isDemo()) return MOCK_PARKINGS.find((parking) => parking.id === id) ?? null
+
+  const { data, status, error } = await api.get<Parking>(
+    `/parqueaderos/${encodeURIComponent(id)}`,
+    { signal },
+  )
+  if (status === 404) return null
+  if (error || !data) throw new Error(error?.message ?? 'La API no devolvió el parqueadero')
+  return data
 }
