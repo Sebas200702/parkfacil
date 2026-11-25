@@ -1,3 +1,4 @@
+import { BayMap } from '@shared/ui/bay-map'
 import { BayStatus } from '@shared/ui/bay-status'
 import { Button } from '@shared/ui/button'
 import { CupoMeter } from '@shared/ui/cupo-meter'
@@ -73,6 +74,26 @@ export const UiGallery = () => {
           <CupoMeter free={12} capacity={40} />
           <CupoMeter free={0} capacity={25} />
         </div>
+      </Section>
+
+      <Section title="Plano de bahías">
+        <BayMap
+          label="Plano de ejemplo"
+          bays={[
+            { id: 'A-01', state: 'taken' },
+            { id: 'A-02', state: 'free' },
+            { id: 'A-03', state: 'held' },
+            { id: 'A-04', state: 'taken' },
+            { id: 'A-05', state: 'taken' },
+            { id: 'A-06', state: 'free' },
+            { id: 'B-01', state: 'free' },
+            { id: 'B-02', state: 'taken' },
+            { id: 'B-03', state: 'taken' },
+            { id: 'M-01', state: 'taken', vehicle: 'moto' },
+            { id: 'M-02', state: 'held' },
+            { id: 'M-03', state: 'free' },
+          ]}
+        />
       </Section>
 
       <Section title="Avisos">

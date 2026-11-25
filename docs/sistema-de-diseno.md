@@ -74,6 +74,7 @@ La paleta por defecto de Tailwind está apagada: solo existen estos colores.
 | `Field`, `Input` | `field.tsx` | Etiqueta visible y error enlazado con `aria-describedby` |
 | `Segmented` | `segmented.tsx` | Elegir entre dos o tres opciones (Carro / Moto) |
 | `BayStatus`, `BayGlyph` | `bay-status.tsx` | Estado `free`, `held`, `taken` con forma, rótulo y color |
+| `BayMap` | `bay-map.tsx` | Plano de bahías visto desde arriba: carro, moto o ticket de reserva, con rótulo y barra de color |
 | `CupoMeter` | `cupo-meter.tsx` | Franja de 12 bahías más la cifra exacta |
 | `Notice` | `notice.tsx` | Aviso `error`, `warn`, `ok` junto a la acción que lo causó |
 | `EmptyState`, `Illustration` | `empty-state.tsx`, `illustration.tsx` | Pantalla sin contenido |
