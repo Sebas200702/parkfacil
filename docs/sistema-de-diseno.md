@@ -64,7 +64,12 @@ La paleta por defecto de Tailwind está apagada: solo existen estos colores.
   rótulo; los botones de solo icono llevan `aria-label`.
 - El estado de un espacio usa el glifo de bahía (`BayStatus`), no un icono de Lucide.
 - Ilustraciones de **unDraw** con el acento recoloreado a `brand-600`, en
-  `src/shared/assets/illustrations`. Solo en pantallas vacías (`EmptyState`), una por pantalla.
+  `src/shared/assets/illustrations`. Una por pantalla, donde hay espacio y no compiten con un
+  dato: pantallas vacías (`EmptyState`), inicio de sesión y registro, y la invitación a compartir
+  la ubicación al final de la lista. Nunca dentro de una fila, un aviso o encima del mapa.
+- El plano del parqueadero (`BayMap`) dibuja un carro o una moto vistos desde arriba en cada bahía
+  ocupada y un tiquete en la reservada. El admin lo ve con los espacios reales; el conductor ve un
+  resumen a partir de los conteos (`LotPlan`), sin códigos de espacio.
 
 ## Componentes base
 

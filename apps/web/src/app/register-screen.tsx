@@ -1,6 +1,7 @@
 import { useAuth } from '@context/AuthContext'
 import { Button } from '@shared/ui/button'
 import { Field, Input } from '@shared/ui/field'
+import { Illustration } from '@shared/ui/illustration'
 import { Notice } from '@shared/ui/notice'
 import { translateCognitoError } from '@shared/utils/cognito-errors'
 import { type FormEvent, useState } from 'react'
@@ -50,6 +51,7 @@ export const RegisterScreen = ({ onNavigate }: RegisterScreenProps) => {
   return (
     <div className="mx-auto w-full max-w-md py-6">
       <div className="grid gap-6 rounded-plate border-2 border-asphalt-200 bg-paper p-6 shadow-sm">
+        {step === 'register' ? <Illustration name="no-reservations" className="mx-auto" /> : null}
         <div>
           <h1 className="text-display font-extrabold tracking-tight text-asphalt-950">
             {step === 'confirm' ? 'Confirma tu correo' : 'Crear cuenta'}
