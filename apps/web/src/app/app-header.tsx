@@ -39,19 +39,25 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
 
   return (
     <header className="bg-asphalt-950 text-paper">
-      <div className="flex h-14 w-full items-center justify-between px-4">
+      <div className="flex h-14 w-full items-center justify-between gap-2 px-3 sm:px-4">
         <a
           href="/"
           onClick={handleBrandClick}
-          className={`inline-flex items-center gap-2.5 ${LINK_FOCUS}`}
+          className={`inline-flex min-w-0 items-center gap-2.5 ${LINK_FOCUS}`}
         >
           <BrandMark />
-          <span className="text-heading font-extrabold tracking-tight">ParkFácil</span>
+          <span className="truncate text-heading font-extrabold tracking-tight">ParkFácil</span>
         </a>
 
-        <nav aria-label="Navegación de usuario" className="flex items-center gap-2">
+        <nav
+          aria-label="Navegación de usuario"
+          className="flex shrink-0 items-center gap-1.5 sm:gap-2"
+        >
           {import.meta.env.DEV ? (
-            <a href="#ui" className={`text-label underline underline-offset-4 ${LINK_FOCUS}`}>
+            <a
+              href="#ui"
+              className={`hidden whitespace-nowrap text-label underline underline-offset-4 md:inline ${LINK_FOCUS}`}
+            >
               Sistema de diseño
             </a>
           ) : null}
@@ -61,9 +67,9 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
               variant="secondary"
               icon={Shield}
               onClick={() => onNavigate?.('/admin')}
-              className="h-9 min-h-9 px-3 text-sm text-asphalt-950"
+              className="h-9 min-h-9 px-2.5 text-sm sm:px-3 text-asphalt-950"
             >
-              Administración
+              <span className="max-sm:sr-only">Administración</span>
             </Button>
           ) : null}
 
@@ -72,9 +78,9 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
               variant="secondary"
               icon={LogOut}
               onClick={logout}
-              className="h-9 min-h-9 px-3 text-sm"
+              className="h-9 min-h-9 px-2.5 text-sm sm:px-3"
             >
-              Cerrar sesión
+              <span className="max-sm:sr-only">Cerrar sesión</span>
             </Button>
           ) : (
             <>
@@ -82,17 +88,17 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
                 variant="quiet"
                 icon={LogIn}
                 onClick={() => onNavigate?.('/login')}
-                className="h-9 min-h-9 text-paper hover:text-concrete-200"
+                className="h-9 min-h-9 px-2.5 text-paper hover:text-concrete-200 sm:px-3"
               >
-                Iniciar sesión
+                <span className="max-sm:sr-only">Iniciar sesión</span>
               </Button>
               <Button
                 variant="primary"
                 icon={UserPlus}
                 onClick={() => onNavigate?.('/registro')}
-                className="h-9 min-h-9 px-3 text-sm"
+                className="h-9 min-h-9 px-2.5 text-sm sm:px-3"
               >
-                Registrarse
+                <span className="max-sm:sr-only">Registrarse</span>
               </Button>
             </>
           )}

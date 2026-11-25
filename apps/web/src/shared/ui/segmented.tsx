@@ -28,9 +28,9 @@ export const Segmented = <T extends string>({
         type="button"
         aria-pressed={optionValue === value}
         onClick={() => onChange(optionValue)}
-        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 px-3 font-bold leading-none text-asphalt-950 focus-visible:outline-3 focus-visible:-outline-offset-[5px] focus-visible:outline-focus aria-pressed:bg-asphalt-950 aria-pressed:text-paper"
+        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 px-2 text-center font-bold leading-tight sm:gap-2 sm:px-3 text-asphalt-950 focus-visible:outline-3 focus-visible:-outline-offset-[5px] focus-visible:outline-focus aria-pressed:bg-asphalt-950 aria-pressed:text-paper"
       >
-        {Icon ? <Icon aria-hidden="true" size={20} /> : null}
+        {Icon ? <Icon aria-hidden="true" size={20} className="shrink-0" /> : null}
         {optionLabel}
       </button>
     ))}

@@ -44,9 +44,9 @@ export const AdminLayout = ({ currentRoute = '/admin/espacios', onNavigate }: Ad
   return (
     <div className="grid gap-6">
       {/* Encabezado indicando el parqueadero administrado */}
-      <div className="flex flex-col gap-2 rounded-plate border-2 border-asphalt-200 bg-paper p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-2 rounded-plate border-2 border-asphalt-200 bg-paper p-4 shadow-sm sm:p-6 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-display font-extrabold tracking-tight text-asphalt-950">
+          <h1 className="text-title font-extrabold tracking-tight sm:text-display text-asphalt-950">
             Panel Administrativo
           </h1>
           <p className="mt-1 text-body text-asphalt-600">
@@ -54,11 +54,11 @@ export const AdminLayout = ({ currentRoute = '/admin/espacios', onNavigate }: Ad
           </p>
         </div>
 
-        <div className="flex items-center gap-2 rounded-plate border-2 border-brand-200 bg-brand-50 px-4 py-2 text-brand-900">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 rounded-plate border-2 border-brand-200 bg-brand-50 px-4 py-2 text-brand-900">
           <span className="text-caption font-bold uppercase tracking-wider text-brand-700">
             Parqueadero:
           </span>
-          <strong className="text-body font-mono font-extrabold text-brand-950">
+          <strong className="break-all text-body font-mono font-extrabold text-brand-950">
             {parqueaderoId ?? 'Sin asignar'}
           </strong>
         </div>
@@ -75,7 +75,7 @@ export const AdminLayout = ({ currentRoute = '/admin/espacios', onNavigate }: Ad
       </div>
 
       {/* Contenido de cada sección placeholder */}
-      <div className="rounded-plate border-2 border-asphalt-200 bg-paper p-6 shadow-sm">
+      <div className="rounded-plate border-2 border-asphalt-200 bg-paper p-4 shadow-sm sm:p-6">
         {activeSection === 'espacios' ? (
           <LiveSpacesPage />
         ) : activeSection === 'tarifas' ? (
