@@ -31,6 +31,20 @@ const padding = (variant: ButtonVariant, iconOnly: boolean): string => {
   return variant === 'quiet' ? 'px-3' : 'px-5'
 }
 
+type ButtonLook = {
+  variant?: ButtonVariant
+  iconOnly?: boolean
+  block?: boolean
+}
+
+/** Clases de la placa de acción. Las comparte ButtonLink para que un enlace se vea igual. */
+export const buttonClassName = ({
+  variant = 'primary',
+  iconOnly = false,
+  block = false,
+}: ButtonLook = {}): string =>
+  cx(BASE, VARIANTS[variant], padding(variant, iconOnly), block && 'w-full')
+
 const DOTS = ['', '[animation-delay:0.33s]', '[animation-delay:0.66s]']
 
 const LoadingDots = () => (
@@ -62,10 +76,7 @@ export const Button = ({
     aria-busy={loading || undefined}
     onClick={loading ? undefined : onClick}
     className={cx(
-      BASE,
-      VARIANTS[variant],
-      padding(variant, iconOnly),
-      block && 'w-full',
+      buttonClassName({ variant, iconOnly, block }),
       loading && 'cursor-progress',
       className,
     )}
