@@ -8,8 +8,9 @@ import { useGeolocation } from '@shared/hooks/use-geolocation'
 import { Button } from '@shared/ui/button'
 import { EmptyState } from '@shared/ui/empty-state'
 import { Segmented } from '@shared/ui/segmented'
-import { LocateFixed } from 'lucide-react'
+import { LocateFixed, Ticket } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { LocationPrompt } from './location-prompt'
 import { LotRow } from './lot-row'
@@ -140,9 +141,18 @@ export const ParkingsScreen = () => {
         ) : (
           <>
             <header className="grid gap-3 border-concrete-200 border-b p-4">
-              <h1 id="parkings-title" className="text-title">
-                Parqueaderos
-              </h1>
+              <div className="flex items-center justify-between gap-3">
+                <h1 id="parkings-title" className="text-title">
+                  Parqueaderos
+                </h1>
+                <Link
+                  href="/reservas"
+                  className="inline-flex min-h-12 items-center gap-1.5 rounded-plate px-1 font-bold text-brand-600 underline decoration-2 underline-offset-4 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                >
+                  <Ticket aria-hidden="true" size={18} />
+                  Mis reservas
+                </Link>
+              </div>
               <Segmented
                 label="Tipo de vehículo"
                 options={VEHICLE_OPTIONS}

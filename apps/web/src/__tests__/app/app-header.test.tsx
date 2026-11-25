@@ -70,6 +70,22 @@ describe('AppHeader', () => {
     expect(logout).toHaveBeenCalledTimes(1)
   })
 
+  it('con sesión lleva a Mis reservas', () => {
+    const onNavigate = vi.fn()
+    const auth = createMockAuthContext({ isAuthenticated: true })
+
+    renderWithAuth(<AppHeader onNavigate={onNavigate} />, auth)
+    fireEvent.click(screen.getByRole('button', { name: 'Mis reservas' }))
+
+    expect(onNavigate).toHaveBeenCalledWith('/reservas')
+  })
+
+  it('sin sesión no ofrece Mis reservas', () => {
+    renderWithAuth(<AppHeader />, createMockAuthContext({ isAuthenticated: false }))
+
+    expect(screen.queryByRole('button', { name: 'Mis reservas' })).toBeNull()
+  })
+
   it('el logo de la marca navega al inicio "/"', () => {
     const onNavigate = vi.fn()
     const auth = createMockAuthContext()
