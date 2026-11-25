@@ -6,7 +6,11 @@ import type { MouseEvent } from 'react'
 
 /** Marca: una bahía con el cupo apartado en violeta. Mismo dibujo que public/favicon.svg. */
 const BrandMark = () => (
-  <svg aria-hidden="true" viewBox="0 0 32 32" className="size-8 shrink-0">
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 32 32"
+    className="size-8 shrink-0 transition-transform duration-300 ease-soft group-hover:-rotate-6 group-hover:scale-105"
+  >
     <rect width="32" height="32" rx="6" className="fill-asphalt-950" />
     <rect x="11.5" y="10.5" width="9" height="16" className="fill-brand-600" />
     <path
@@ -29,11 +33,13 @@ export interface AppHeaderProps {
 export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
   const { idToken, isAuthenticated, logout } = useAuth()
   const isAdmin = isAdminUser(idToken)
+  // Con sesión, el inicio es el mapa: ir a la landing y rebotar al mapa se vería como un parpadeo.
+  const homeRoute = isAuthenticated ? '/mapa' : '/'
 
   const handleBrandClick = (e: MouseEvent<HTMLAnchorElement>) => {
     if (onNavigate) {
       e.preventDefault()
-      onNavigate('/')
+      onNavigate(homeRoute)
     }
   }
 
@@ -41,9 +47,9 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
     <header className="bg-asphalt-950 text-paper">
       <div className="flex h-14 w-full items-center justify-between gap-2 px-3 sm:px-4">
         <a
-          href="/"
+          href={homeRoute}
           onClick={handleBrandClick}
-          className={`inline-flex min-w-0 items-center gap-2.5 ${LINK_FOCUS}`}
+          className={`group inline-flex min-w-0 items-center gap-2.5 ${LINK_FOCUS}`}
         >
           <BrandMark />
           <span className="truncate text-heading font-extrabold tracking-tight">ParkFácil</span>

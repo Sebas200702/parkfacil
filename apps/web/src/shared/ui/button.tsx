@@ -17,11 +17,13 @@ type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> & {
 }
 
 const BASE =
-  'inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-plate border-2 font-bold leading-none transition-colors duration-100 ease-out focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus active:translate-y-px motion-reduce:transition-none'
+  'inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-plate border-2 font-bold leading-none transition-[color,background-color,translate,box-shadow] duration-150 ease-soft focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus active:translate-y-px motion-reduce:transition-none'
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'border-transparent bg-brand-600 text-paper hover:bg-brand-700 aria-busy:bg-brand-700',
-  secondary: 'border-asphalt-950 bg-paper text-asphalt-950 hover:bg-concrete-100',
+  primary:
+    'border-transparent bg-brand-600 text-paper hover:-translate-y-px hover:bg-brand-700 hover:shadow-marker aria-busy:bg-brand-700',
+  secondary:
+    'border-asphalt-950 bg-paper text-asphalt-950 hover:-translate-y-px hover:bg-concrete-100 hover:shadow-marker',
   quiet: 'border-transparent text-brand-600 underline decoration-2 underline-offset-4',
   danger: 'border-status-taken bg-paper text-status-taken hover:bg-status-taken-tint',
 }

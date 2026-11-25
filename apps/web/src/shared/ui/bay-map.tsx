@@ -45,7 +45,10 @@ export const CarTop = ({ compact }: { compact: boolean }) => (
   <svg
     aria-hidden="true"
     viewBox="0 0 44 92"
-    className={cx('fill-current', compact ? 'h-12' : 'h-20')}
+    className={cx(
+      'fill-current transition-transform duration-200 ease-soft group-hover:scale-105',
+      compact ? 'h-12' : 'h-20',
+    )}
   >
     <rect x="1" y="27" width="6" height="7" rx="3" />
     <rect x="37" y="27" width="6" height="7" rx="3" />
@@ -71,7 +74,10 @@ export const MotoTop = ({ compact }: { compact: boolean }) => (
   <svg
     aria-hidden="true"
     viewBox="0 0 20 64"
-    className={cx('fill-current', compact ? 'h-11' : 'h-16')}
+    className={cx(
+      'fill-current transition-transform duration-200 ease-soft group-hover:scale-105',
+      compact ? 'h-11' : 'h-16',
+    )}
   >
     <rect x="1" y="12" width="18" height="3" rx="1.5" />
     <rect x="8" y="2" width="4" height="14" rx="2" />
@@ -104,7 +110,7 @@ const Bay = ({ bay, labelFirst, last, compact, summary }: BayProps) => {
       aria-label={summary ? undefined : `${id}: ${LABELS[state]}`}
       data-state={state}
       className={cx(
-        'grid',
+        'group grid',
         compact ? 'gap-2' : 'gap-3',
         labelFirst ? 'grid-rows-[auto_1fr]' : 'grid-rows-[1fr_auto]',
       )}

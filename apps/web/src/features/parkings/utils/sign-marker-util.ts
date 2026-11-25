@@ -14,7 +14,7 @@ export const signMarkerLabel = (name: string, free: number, selected: boolean): 
 
 // La placa se ancla por su punta: el icono de Leaflet mide 0 × 0 y la placa se dibuja hacia arriba.
 const PLATE =
-  'absolute bottom-1.5 left-0 isolate inline-flex h-10 -translate-x-1/2 cursor-pointer items-center gap-[5px] rounded-plate px-[11px] text-paper transition-transform duration-100 ease-out group-focus-visible:outline-3 group-focus-visible:outline-offset-3 group-focus-visible:outline-focus motion-reduce:transition-none'
+  'absolute bottom-1.5 left-0 isolate inline-flex h-10 -translate-x-1/2 cursor-pointer items-center gap-[5px] rounded-plate px-[11px] text-paper transition-transform duration-150 ease-soft group-hover:scale-110 group-focus-visible:outline-3 group-focus-visible:outline-offset-3 group-focus-visible:outline-focus motion-reduce:transition-none'
 
 const POINTER =
   "after:absolute after:-bottom-[5px] after:left-1/2 after:-z-10 after:size-2.5 after:-translate-x-1/2 after:rotate-45 after:bg-inherit after:content-['']"

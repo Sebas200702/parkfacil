@@ -44,7 +44,7 @@ export const Notice = ({ tone, title, children }: NoticeProps) => {
     <div
       role={tone === 'error' ? 'alert' : 'status'}
       className={cx(
-        'grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 rounded-plate border-2 px-4 py-3 text-asphalt-950',
+        'animate-rise grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-0.5 rounded-plate border-2 px-4 py-3 text-asphalt-950',
         box,
       )}
     >

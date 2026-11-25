@@ -65,7 +65,7 @@ const ParkingResults = ({
 
   return (
     <>
-      <ul>
+      <ul key={vehicle} className="animate-rise">
         {rows.map(({ parking, meters }) => (
           <li key={parking.id}>
             <LotRow parking={parking} vehicle={vehicle} meters={meters} onOpen={onOpen} />

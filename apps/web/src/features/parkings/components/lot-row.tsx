@@ -20,7 +20,7 @@ export const LotRow = ({ parking, vehicle, meters, onOpen }: LotRowProps) => {
     <button
       type="button"
       onClick={() => onOpen(parking.id)}
-      className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-2.5 border-concrete-200 border-b bg-paper p-4 text-left hover:bg-concrete-100 focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-focus"
+      className="grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-2.5 border-concrete-200 border-b bg-paper p-4 text-left transition-[background-color,padding] duration-150 ease-soft hover:bg-concrete-100 hover:pl-5 focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-focus"
     >
       <span className="grid gap-0.5">
         <span className="text-heading">{parking.nombre}</span>

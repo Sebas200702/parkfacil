@@ -100,20 +100,22 @@ export const LiveSpacesPage = () => {
             value={filter}
             onChange={setFilter}
           />
-          <div className="grid gap-2 sm:grid-cols-3 sm:gap-3">
-            <Stat label="Libres" value={libres} state="LIBRE" />
-            <Stat label="Reservados" value={count(visible, 'RESERVADO')} state="RESERVADO" />
-            <Stat label="Ocupados" value={count(visible, 'OCUPADO')} state="OCUPADO" />
+          <div key={filter} className="grid animate-rise gap-4">
+            <div className="grid gap-2 sm:grid-cols-3 sm:gap-3">
+              <Stat label="Libres" value={libres} state="LIBRE" />
+              <Stat label="Reservados" value={count(visible, 'RESERVADO')} state="RESERVADO" />
+              <Stat label="Ocupados" value={count(visible, 'OCUPADO')} state="OCUPADO" />
+            </div>
+            <CupoMeter free={libres} capacity={visible.length} />
+            <BayMap
+              label="Plano de espacios del parqueadero"
+              bays={visible.map((s) => ({
+                id: s.id,
+                state: BAY[s.estado],
+                vehicle: s.tipo === 'MOTO' ? 'moto' : 'car',
+              }))}
+            />
           </div>
-          <CupoMeter free={libres} capacity={visible.length} />
-          <BayMap
-            label="Plano de espacios del parqueadero"
-            bays={visible.map((s) => ({
-              id: s.id,
-              state: BAY[s.estado],
-              vehicle: s.tipo === 'MOTO' ? 'moto' : 'car',
-            }))}
-          />
         </>
       )}
     </div>
