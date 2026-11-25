@@ -1,8 +1,14 @@
 import { MOCK_PARKINGS } from '@features/parkings/parking-mocks'
 import type { VehicleType } from '@features/parkings/parking-types'
 import { api } from '@lib/api'
-import { demoReservations, demoReserve, withDemoReservation } from './reservation-demo'
-import type { Reservation, ReserveProblem, ReserveResult } from './reservation-types'
+import { demoCancel, demoReservations, demoReserve, withDemoReservation } from './reservation-demo'
+import type {
+  CancelProblem,
+  CancelResult,
+  Reservation,
+  ReserveProblem,
+  ReserveResult,
+} from './reservation-types'
 
 /** Sin URL de API el frontend trabaja con los datos de demostración. */
 const isDemo = (): boolean => !process.env.NEXT_PUBLIC_API_URL
@@ -31,6 +37,24 @@ export const createReservation = async (
     tipo: vehicle,
   })
   if (error || !data) return { ok: false, problem: toProblem(status, error?.code) }
+  return { ok: true, reservation: data }
+}
+
+const toCancelProblem = (status: number): CancelProblem => {
+  // 409: ya no estaba activa. 404: no existe o no es de esta persona. En ambos casos no hay qué cancelar.
+  if (status === 409 || status === 404) return 'not-active'
+  if (status === 401 || status === 403) return 'session'
+  return 'connection'
+}
+
+/** DELETE /reservas/{id}: cancela una reserva propia y libera el cupo. */
+export const cancelReservation = async (id: string): Promise<CancelResult> => {
+  if (isDemo()) return demoCancel(id)
+
+  const { data, status, error } = await api.delete<Reservation>(
+    `/reservas/${encodeURIComponent(id)}`,
+  )
+  if (error || !data) return { ok: false, problem: toCancelProblem(status) }
   return { ok: true, reservation: data }
 }
 
