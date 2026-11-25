@@ -1,6 +1,8 @@
 import { useParking } from '@features/parkings/hooks/use-parking'
 import { VEHICLE_OPTIONS, VEHICLE_PLURAL } from '@features/parkings/parking-consts'
 import type { Parking, VehicleType } from '@features/parkings/parking-types'
+import { ReservePanel } from '@features/reservations/components/reserve-panel'
+import type { ReservationController } from '@features/reservations/hooks/use-reservation'
 import { Button } from '@shared/ui/button'
 import { ButtonLink } from '@shared/ui/button-link'
 import { EmptyState } from '@shared/ui/empty-state'
@@ -19,6 +21,11 @@ type ParkingDetailProps = {
   onVehicleChange: (vehicle: VehicleType) => void
   /** Ubicación de la persona, si la compartió. */
   origin: GeoPoint | null
+  /** La reserva activa de la persona y la acción de reservar. */
+  reservations: ReservationController
+  /** Nombre del parqueadero donde está la reserva activa, cuando es otro. */
+  reservedParkingName?: string
+  onOpenParking: (id: string) => void
   onBack: () => void
 }
 
@@ -33,9 +40,20 @@ const BackButton = ({ onBack }: { onBack: () => void }) => (
 
 type DetailBodyProps = Omit<ParkingDetailProps, 'id' | 'initial'> & { parking: Parking }
 
-const DetailBody = ({ parking, vehicle, onVehicleChange, origin, onBack }: DetailBodyProps) => {
+const DetailBody = ({
+  parking,
+  vehicle,
+  onVehicleChange,
+  origin,
+  reservations,
+  reservedParkingName,
+  onOpenParking,
+  onBack,
+}: DetailBodyProps) => {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const capacity = parking.capacidad[vehicle]
+  const { reservation } = reservations
+  const reservedHere = reservation?.parqueaderoId === parking.id
   const rate = parking.tarifas[vehicle]
   const distance = origin ? ` · ${formatDistance(distanceMeters(origin, parking))}` : ''
 
@@ -66,13 +84,28 @@ const DetailBody = ({ parking, vehicle, onVehicleChange, origin, onBack }: Detai
         onChange={onVehicleChange}
       />
 
+      {capacity > 0 || reservedHere ? (
+        <ReservePanel
+          parking={parking}
+          vehicle={vehicle}
+          controller={reservations}
+          reservedParkingName={reservedParkingName}
+          onOpenParking={onOpenParking}
+        />
+      ) : null}
+
       {capacity > 0 ? (
         <>
           <section aria-labelledby="parking-spots" className="grid gap-3">
             <h2 id="parking-spots" className="text-heading">
               Cupos
             </h2>
-            <LotPlan free={parking.cupos[vehicle]} capacity={capacity} vehicle={vehicle} />
+            <LotPlan
+              free={parking.cupos[vehicle]}
+              capacity={capacity}
+              vehicle={vehicle}
+              held={reservedHere && reservation?.tipo === vehicle}
+            />
           </section>
 
           <section aria-labelledby="parking-rates" className="grid gap-1">
@@ -106,7 +139,10 @@ const DetailBody = ({ parking, vehicle, onVehicleChange, origin, onBack }: Detai
 
 /** Detalle de un parqueadero: cupos y tarifas del tipo de vehículo elegido, y cómo llegar. */
 export const ParkingDetail = ({ id, initial, onBack, ...rest }: ParkingDetailProps) => {
-  const { status, parking, reload } = useParking(id, initial)
+  // Reservar o perder la reserva cambia los cupos: se vuelven a pedir en ese momento.
+  const { reservation, notice } = rest.reservations
+  const revision = `${reservation?.id ?? ''}:${notice?.kind ?? ''}`
+  const { status, parking, reload } = useParking(id, initial, revision)
 
   if (parking) return <DetailBody parking={parking} onBack={onBack} {...rest} />
 

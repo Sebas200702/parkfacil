@@ -1,6 +1,8 @@
 import { useParkings } from '@features/parkings/hooks/use-parkings'
 import { VEHICLE_OPTIONS } from '@features/parkings/parking-consts'
 import type { VehicleType } from '@features/parkings/parking-types'
+import { ReservationBanner } from '@features/reservations/components/reservation-banner'
+import { useReservation } from '@features/reservations/hooks/use-reservation'
 import { type ParkingRow, toParkingRows } from '@features/parkings/utils/parking-util'
 import { useGeolocation } from '@shared/hooks/use-geolocation'
 import { Button } from '@shared/ui/button'
@@ -82,10 +84,14 @@ const ParkingResults = ({
  * Elegir una placa o una fila cambia la lista por el detalle de ese parqueadero.
  */
 export const ParkingsScreen = () => {
-  const { status, parkings, reload } = useParkings()
+  const reservations = useReservation()
+  const { reservation } = reservations
+  // Reservar o perder la reserva cambia los cupos: la lista se vuelve a pedir en ese momento.
+  const { status, parkings, reload } = useParkings(reservation?.id)
   const geolocation = useGeolocation()
   const [vehicle, setVehicle] = useState<VehicleType>('CARRO')
   const [openId, setOpenId] = useState<string | null>(null)
+  const reservedParking = parkings.find((parking) => parking.id === reservation?.parqueaderoId)
 
   const rows = useMemo(
     () => toParkingRows(parkings, geolocation.position),
@@ -125,6 +131,9 @@ export const ParkingsScreen = () => {
               vehicle={vehicle}
               onVehicleChange={setVehicle}
               origin={geolocation.position}
+              reservations={reservations}
+              reservedParkingName={reservedParking?.nombre}
+              onOpenParking={setOpenId}
               onBack={() => setOpenId(null)}
             />
           </div>
@@ -142,6 +151,13 @@ export const ParkingsScreen = () => {
               />
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto">
+              {reservation ? (
+                <ReservationBanner
+                  reservation={reservation}
+                  parkingName={reservedParking?.nombre}
+                  onOpen={setOpenId}
+                />
+              ) : null}
               <ParkingResults
                 status={status}
                 rows={rows}
