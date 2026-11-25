@@ -24,6 +24,7 @@ const createMockAuthContext = (token: string): AuthContextValue => ({
   idToken: token,
   isAuthenticated: true,
   isLoading: false,
+  isRestoring: false,
   login: vi.fn(),
   register: vi.fn(),
   confirmCode: vi.fn(),

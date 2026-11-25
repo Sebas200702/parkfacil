@@ -9,16 +9,18 @@ export interface AdminRouteProps {
 }
 
 export const AdminRoute = ({ children, onNavigate }: AdminRouteProps) => {
-  const { idToken, isAuthenticated, isLoading } = useAuth()
+  const { idToken, isAuthenticated, isLoading, isRestoring } = useAuth()
+  // Al recargar, la sesión tarda un instante en recuperarse: hasta entonces no se decide nada.
+  const isPending = isLoading || isRestoring
   const isAdmin = isAdminUser(idToken)
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || !isAdmin)) {
+    if (!isPending && (!isAuthenticated || !isAdmin)) {
       onNavigate?.('/')
     }
-  }, [isLoading, isAuthenticated, isAdmin, onNavigate])
+  }, [isPending, isAuthenticated, isAdmin, onNavigate])
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div
         className="flex min-h-64 items-center justify-center p-8 text-asphalt-600"

@@ -24,7 +24,9 @@ const getOAuthConfig = () => {
     .replace(/^https?:\/\//, '')
     .replace(/\/+$/, '')
   const clientId = import.meta.env.VITE_USER_POOL_CLIENT_ID ?? ''
-  return { domain, clientId, redirectUri: `${window.location.origin}/` }
+  // Sin navegador (pruebas o compilación estática) no hay window.
+  const origin = typeof window === 'undefined' ? '' : window.location.origin
+  return { domain, clientId, redirectUri: `${origin}/` }
 }
 
 /** Indica si el inicio de sesión con Google está configurado (dominio de Cognito definido). */

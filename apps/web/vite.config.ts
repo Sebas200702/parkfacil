@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
       '@context': src('context'),
       '@features': src('features'),
       '@lib': src('lib'),
-      '@pages': src('pages'),
+      '@pages': src('screens'),
       '@shared': src('shared'),
       '@tests': src('__tests__'),
     },
