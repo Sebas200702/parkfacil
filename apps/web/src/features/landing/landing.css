@@ -1,0 +1,157 @@
+/*
+ * Landing de ParkFácil: póster retro. Todo va con prefijo lp- y solo se usa en esta pantalla.
+ * Tailwind pone el color y el espacio; aquí viven la tipografía de póster y el movimiento.
+ */
+
+.lp-display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+}
+
+.lp-heading {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.lp-mono {
+  font-family: var(--font-code);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/* --- Aparecer al hacer scroll. Reveal pone data-shown cuando el bloque entra en pantalla. --- */
+
+.lp-reveal {
+  opacity: 0;
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+.lp-reveal[data-from="up"] {
+  transform: translateY(48px);
+}
+
+.lp-reveal[data-from="left"] {
+  transform: translateX(-64px);
+}
+
+.lp-reveal[data-from="right"] {
+  transform: translateX(64px);
+}
+
+.lp-reveal[data-from="pop"] {
+  transform: scale(0.82) rotate(-6deg);
+}
+
+.lp-reveal[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- Hover --- */
+
+.lp-btn {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  gap: 0.75rem;
+  border: 2px solid var(--color-asphalt-950);
+  border-radius: 999px;
+  padding: 1rem 1.6rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 6px 6px 0 var(--lp-shadow, var(--color-asphalt-950));
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lp-btn svg {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lp-btn:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 10px 10px 0 var(--lp-shadow, var(--color-asphalt-950));
+}
+
+.lp-btn:hover svg {
+  transform: translateX(6px);
+}
+
+.lp-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0 var(--lp-shadow, var(--color-asphalt-950));
+}
+
+.lp-btn:focus-visible,
+.lp-link:focus-visible {
+  outline: 3px solid var(--color-paint);
+  outline-offset: 3px;
+}
+
+/* Tarjeta inclinada. No es interactiva: no reacciona al cursor. */
+.lp-card {
+  transform: rotate(var(--lp-tilt, 0deg));
+}
+
+/* Enlace con subrayado que crece desde la izquierda. */
+.lp-link {
+  background: linear-gradient(currentColor, currentColor) left bottom / 0 2px no-repeat;
+  padding-block: 0.25rem;
+  transition:
+    background-size 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 0.2s;
+}
+
+.lp-link:hover {
+  background-size: 100% 2px;
+  color: var(--color-paint);
+}
+
+/* --- Barra de la landing --- */
+
+.lp-nav-link {
+  background: linear-gradient(currentColor, currentColor) left bottom / 0 2px no-repeat;
+  padding-block: 0.4rem;
+  transition: background-size 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lp-nav-link:hover {
+  background-size: 100% 2px;
+}
+
+.lp-nav-pill {
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lp-nav-pill:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--color-brand-600);
+}
+
+.lp-brand-mark {
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lp-brand:hover .lp-brand-mark {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+.lp-nav-link:focus-visible,
+.lp-nav-pill:focus-visible,
+.lp-brand:focus-visible {
+  outline: 3px solid var(--color-brand-600);
+  outline-offset: 3px;
+}

@@ -1,0 +1,175 @@
+/* Landing de ParkFácil: movimiento continuo y respeto por quien pide menos movimiento. */
+
+@keyframes lp-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes lp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lp-drive {
+  0%,
+  100% {
+    transform: translateX(-12%);
+  }
+  50% {
+    transform: translateX(4%);
+  }
+}
+
+@keyframes lp-streak {
+  0%,
+  100% {
+    transform: scaleX(0.35);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes lp-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0deg);
+  }
+}
+
+@keyframes lp-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes lp-road {
+  to {
+    transform: translateX(-88px);
+  }
+}
+
+@keyframes lp-cross {
+  from {
+    transform: translateX(-180px);
+  }
+  to {
+    transform: translateX(100vw);
+  }
+}
+
+@keyframes lp-park {
+  0%,
+  12% {
+    transform: translateY(-140%);
+    opacity: 0;
+  }
+  30%,
+  82% {
+    transform: none;
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-140%);
+    opacity: 0;
+  }
+}
+
+.lp-marquee {
+  display: flex;
+  width: max-content;
+  animation: lp-marquee 26s linear infinite;
+}
+
+.lp-marquee-wrap:hover .lp-marquee {
+  animation-play-state: paused;
+}
+
+.lp-spin {
+  transform-origin: 50% 50%;
+  animation: lp-spin 22s linear infinite;
+}
+
+.lp-drive {
+  animation: lp-drive 5.5s ease-in-out infinite;
+}
+
+.lp-streak {
+  transform-origin: right center;
+  animation: lp-streak 1.8s ease-in-out infinite;
+}
+
+.lp-float {
+  animation: lp-float 5s ease-in-out infinite;
+}
+
+.lp-blink {
+  animation: lp-blink 1s steps(1) infinite;
+}
+
+.lp-road {
+  animation: lp-road 0.7s linear infinite;
+}
+
+.lp-cross {
+  animation: lp-cross 9s linear infinite;
+}
+
+/* En el plano de ejemplo, el carro de la tercera bahía entra y sale. */
+.lp-plan li:nth-child(3) svg {
+  color: var(--color-brand-400);
+  animation: lp-park 7s ease-in-out infinite;
+}
+
+/* Titulares que se desplazan un poco más lento que la página, donde el navegador lo permite. */
+@supports (animation-timeline: view()) {
+  @keyframes lp-drift {
+    from {
+      transform: translateX(-4%);
+    }
+    to {
+      transform: translateX(4%);
+    }
+  }
+
+  .lp-drift {
+    animation: lp-drift linear both;
+    animation-timeline: view();
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .lp-marquee,
+  .lp-spin,
+  .lp-drive,
+  .lp-streak,
+  .lp-float,
+  .lp-blink,
+  .lp-road,
+  .lp-drift,
+  .lp-plan li:nth-child(3) svg {
+    animation: none;
+  }
+
+  .lp-cross {
+    animation: none;
+    transform: translateX(18vw);
+  }
+
+  .lp-btn {
+    transition: none;
+  }
+}
