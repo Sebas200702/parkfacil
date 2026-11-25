@@ -41,7 +41,7 @@ const BAR: Record<BayState, string> = {
   taken: 'bg-status-taken-on-dark',
 }
 
-const Car = ({ compact }: { compact: boolean }) => (
+export const CarTop = ({ compact }: { compact: boolean }) => (
   <svg
     aria-hidden="true"
     viewBox="0 0 44 92"
@@ -67,7 +67,7 @@ const Car = ({ compact }: { compact: boolean }) => (
   </svg>
 )
 
-const Moto = ({ compact }: { compact: boolean }) => (
+export const MotoTop = ({ compact }: { compact: boolean }) => (
   <svg
     aria-hidden="true"
     viewBox="0 0 20 64"
@@ -125,9 +125,9 @@ const Bay = ({ bay, labelFirst, last, compact, summary }: BayProps) => {
         {state === 'held' ? <Ticket size={compact ? 20 : 28} strokeWidth={2} /> : null}
         {state === 'taken' ? (
           vehicle === 'moto' ? (
-            <Moto compact={compact} />
+            <MotoTop compact={compact} />
           ) : (
-            <Car compact={compact} />
+            <CarTop compact={compact} />
           )
         ) : null}
       </span>

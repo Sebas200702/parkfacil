@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "@fontsource-variable/bricolage-grotesque/opsz.css";
 @import "@fontsource-variable/martian-mono/index.css";
+@import "@fontsource-variable/unbounded/index.css";
+@import "@fontsource/space-mono/400.css";
+@import "@fontsource/space-mono/700.css";
 
 /*
  * ParkFácil Señalética. Fuente de verdad de los tokens: docs/sistema-de-diseno.md.
@@ -10,6 +13,7 @@
   --color-*: initial;
   --color-brand-700: #3e149f;
   --color-brand-600: #5522d6;
+  --color-brand-400: #8b6cf0;
   --color-brand-100: #e8e0fb;
   --color-paint: #f2b705;
   --color-asphalt-950: #16131f;
@@ -20,6 +24,7 @@
   --color-concrete-200: #e0dee7;
   --color-concrete-100: #eeedf2;
   --color-paper: #ffffff;
+  --color-cream: #f4f1e8;
   --color-status-free: #177a45;
   --color-status-free-tint: #dcf1e4;
   --color-status-free-on-dark: #4ad68a;
@@ -33,6 +38,9 @@
 
   --font-sans: "Bricolage Grotesque Variable", "Trebuchet MS", system-ui, sans-serif;
   --font-mono: "Martian Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Solo para la landing: titulares de póster y etiquetas de máquina de escribir. */
+  --font-display: "Unbounded Variable", "Arial Black", system-ui, sans-serif;
+  --font-code: "Space Mono", ui-monospace, Menlo, monospace;
 
   --text-*: initial;
   --text-display: 2.5rem;
