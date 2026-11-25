@@ -5,10 +5,10 @@ import { type ParkingRow, toParkingRows } from '@features/parkings/utils/parking
 import { useGeolocation } from '@shared/hooks/use-geolocation'
 import { Button } from '@shared/ui/button'
 import { EmptyState } from '@shared/ui/empty-state'
-import { Notice } from '@shared/ui/notice'
 import { Segmented } from '@shared/ui/segmented'
 import { LocateFixed } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { LocationPrompt } from './location-prompt'
 import { LotRow } from './lot-row'
 import { ParkingDetail } from './parking-detail'
 import { ParkingMap } from './parking-map'
@@ -17,11 +17,19 @@ type ParkingResultsProps = {
   status: 'loading' | 'ready' | 'error'
   rows: ParkingRow[]
   vehicle: VehicleType
+  geolocation: ReturnType<typeof useGeolocation>
   onOpen: (id: string) => void
   onRetry: () => void
 }
 
-const ParkingResults = ({ status, rows, vehicle, onOpen, onRetry }: ParkingResultsProps) => {
+const ParkingResults = ({
+  status,
+  rows,
+  vehicle,
+  geolocation,
+  onOpen,
+  onRetry,
+}: ParkingResultsProps) => {
   if (status === 'loading') {
     return <output className="block p-4 text-asphalt-600">Buscando parqueaderos…</output>
   }
@@ -51,13 +59,16 @@ const ParkingResults = ({ status, rows, vehicle, onOpen, onRetry }: ParkingResul
   }
 
   return (
-    <ul>
-      {rows.map(({ parking, meters }) => (
-        <li key={parking.id}>
-          <LotRow parking={parking} vehicle={vehicle} meters={meters} onOpen={onOpen} />
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul>
+        {rows.map(({ parking, meters }) => (
+          <li key={parking.id}>
+            <LotRow parking={parking} vehicle={vehicle} meters={meters} onOpen={onOpen} />
+          </li>
+        ))}
+      </ul>
+      <LocationPrompt status={geolocation.status} onLocate={geolocation.locate} />
+    </>
   )
 }
 
@@ -124,17 +135,13 @@ export const ParkingsScreen = () => {
                 value={vehicle}
                 onChange={setVehicle}
               />
-              {geolocation.status === 'denied' ? (
-                <Notice tone="warn" title="No pudimos ubicarte">
-                  Activa la ubicación del navegador para ordenar por cercanía.
-                </Notice>
-              ) : null}
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto">
               <ParkingResults
                 status={status}
                 rows={rows}
                 vehicle={vehicle}
+                geolocation={geolocation}
                 onOpen={setOpenId}
                 onRetry={reload}
               />
