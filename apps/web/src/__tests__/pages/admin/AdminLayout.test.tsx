@@ -74,7 +74,7 @@ describe('AdminLayout', () => {
     renderWithAuth(<AdminLayout currentRoute="/admin/tarifas" />, auth)
 
     expect(screen.getByTestId('admin-section-tarifas')).toBeDefined()
-    expect(screen.getByText('Configuración de tarifas')).toBeDefined()
+    expect(screen.getByRole('heading', { name: 'Tarifas del parqueadero' })).toBeDefined()
   })
 
   it('renderiza la sección de métricas cuando la ruta es /admin/metricas', () => {
