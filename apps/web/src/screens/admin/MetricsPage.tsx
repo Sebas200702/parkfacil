@@ -18,7 +18,7 @@ const formatHour = (hour: number): string =>
   `${hour % 12 || 12}:00 ${hour < 12 ? 'a. m.' : 'p. m.'}`
 
 const Card = ({ title, children }: { title: string; children: ReactNode }) => (
-  <section className="grid content-start gap-2 rounded-plate border-2 border-asphalt-200 p-4">
+  <section className="grid animate-rise content-start gap-2 rounded-plate border-2 border-asphalt-200 p-4 transition-[translate,box-shadow] duration-150 ease-soft hover:-translate-y-0.5 hover:shadow-marker">
     <h3 className="text-label text-asphalt-600">{title}</h3>
     {children}
   </section>
@@ -59,7 +59,7 @@ const HoursChart = ({ entries, peak }: { entries: number[]; peak: number | null 
             <span
               aria-hidden="true"
               className={cx(
-                'w-full rounded-t-bay',
+                'w-full origin-bottom animate-grow rounded-t-bay',
                 isPeak ? 'bg-brand-600' : 'bg-asphalt-400',
                 count === 0 && 'opacity-30',
               )}
@@ -140,7 +140,7 @@ export const MetricsPage = () => {
         ) : null
       ) : (
         <>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 [&>*:nth-child(2)]:[animation-delay:60ms] [&>*:nth-child(3)]:[animation-delay:120ms] [&>*:nth-child(4)]:[animation-delay:180ms]">
             <Card title="Ocupación actual">
               <Figure>{Math.round(metrics.ocupacionPct)}%</Figure>
               <CupoMeter free={metrics.capacidad - metrics.ocupados} capacity={metrics.capacidad} />

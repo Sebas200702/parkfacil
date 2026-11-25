@@ -75,7 +75,10 @@ export const AdminLayout = ({ currentRoute = '/admin/espacios', onNavigate }: Ad
       </div>
 
       {/* Contenido de cada sección placeholder */}
-      <div className="rounded-plate border-2 border-asphalt-200 bg-paper p-4 shadow-sm sm:p-6">
+      <div
+        key={activeSection}
+        className="animate-rise rounded-plate border-2 border-asphalt-200 bg-paper p-4 shadow-sm sm:p-6"
+      >
         {activeSection === 'espacios' ? (
           <LiveSpacesPage />
         ) : activeSection === 'tarifas' ? (

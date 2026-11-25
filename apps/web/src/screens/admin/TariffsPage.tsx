@@ -136,17 +136,19 @@ export const TariffsPage = () => {
             value={tipo}
             onChange={setTipo}
           />
-          {FIELDS.map(({ key, label }) => (
-            <Field key={key} label={label} htmlFor={key} error={errors[key]}>
-              <Input
-                id={key}
-                inputMode="numeric"
-                value={values[key]}
-                invalid={Boolean(errors[key])}
-                onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-              />
-            </Field>
-          ))}
+          <div key={tipo} className="grid animate-rise gap-4">
+            {FIELDS.map(({ key, label }) => (
+              <Field key={key} label={label} htmlFor={key} error={errors[key]}>
+                <Input
+                  id={key}
+                  inputMode="numeric"
+                  value={values[key]}
+                  invalid={Boolean(errors[key])}
+                  onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
+                />
+              </Field>
+            ))}
+          </div>
           <Button submit loading={saving} loadingLabel="Guardando">
             Guardar tarifas
           </Button>

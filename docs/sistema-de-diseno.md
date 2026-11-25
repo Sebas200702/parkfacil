@@ -56,7 +56,7 @@ La paleta por defecto de Tailwind está apagada: solo existen estos colores.
 - Radios: `rounded-bay` 2 px, `rounded-plate` 6 px (botones, campos, avisos), `rounded-card` 10 px. Sin píldoras.
 - Bordes de 2 px que definen el objeto. Sombras solo en lo que flota sobre el mapa (`shadow-marker`, `shadow-sheet`).
 - Se separa con líneas y espacio, no con tarjetas dentro de tarjetas.
-- Movimiento: transiciones de color de 100 ms; nada pulsa ni rebota. Se respeta `prefers-reduced-motion`.
+- Movimiento: breve y con la curva `ease-soft` de la landing. Los botones se elevan 1 px al pasar el cursor, las tarjetas y las bahías reaccionan al hover, y los bloques nuevos entran con `animate-rise` (8 px, 350 ms). Nada pulsa, rebota ni se repite en bucle fuera de la landing. Una regla global en `theme.css` anula animaciones y transiciones con `prefers-reduced-motion`.
 
 ## Iconos e ilustraciones
 

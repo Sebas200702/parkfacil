@@ -82,6 +82,19 @@ describe('AppHeader', () => {
     expect(onNavigate).toHaveBeenCalledWith('/')
   })
 
+  it('con sesión, el logo lleva directo al mapa sin pasar por la landing', () => {
+    const onNavigate = vi.fn()
+    const auth = createMockAuthContext({ isAuthenticated: true })
+
+    renderWithAuth(<AppHeader onNavigate={onNavigate} />, auth)
+
+    const brandLink = screen.getByRole('link', { name: /ParkFácil/ })
+    expect(brandLink.getAttribute('href')).toBe('/mapa')
+    fireEvent.click(brandLink)
+
+    expect(onNavigate).toHaveBeenCalledWith('/mapa')
+  })
+
   it('muestra el enlace a Administración únicamente si el usuario pertenece al grupo admin', () => {
     const onNavigate = vi.fn()
     const adminToken = createMockJwt(['admin'])
