@@ -17,6 +17,13 @@ type BayMapProps = {
   columns?: number
   /** Nombre accesible del plano: "Plano del parqueadero". */
   label: string
+  /** Bahías más bajas, para espacios estrechos como el detalle que ve el conductor. */
+  compact?: boolean
+  /**
+   * Dibujo de resumen: sin códigos de espacio y anunciado solo por su `label`.
+   * Para cuando se conocen los conteos pero no la posición real de cada cupo.
+   */
+  summary?: boolean
 }
 
 const LABELS: Record<BayState, string> = { free: 'Libre', held: 'Reservado', taken: 'Ocupado' }
@@ -34,8 +41,12 @@ const BAR: Record<BayState, string> = {
   taken: 'bg-status-taken-on-dark',
 }
 
-const Car = () => (
-  <svg aria-hidden="true" viewBox="0 0 44 92" className="h-20 fill-current">
+const Car = ({ compact }: { compact: boolean }) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 44 92"
+    className={cx('fill-current', compact ? 'h-12' : 'h-20')}
+  >
     <rect x="1" y="27" width="6" height="7" rx="3" />
     <rect x="37" y="27" width="6" height="7" rx="3" />
     <rect x="6" y="2" width="32" height="88" rx="15" />
@@ -56,8 +67,12 @@ const Car = () => (
   </svg>
 )
 
-const Moto = () => (
-  <svg aria-hidden="true" viewBox="0 0 20 64" className="h-16 fill-current">
+const Moto = ({ compact }: { compact: boolean }) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 20 64"
+    className={cx('fill-current', compact ? 'h-11' : 'h-16')}
+  >
     <rect x="1" y="12" width="18" height="3" rx="1.5" />
     <rect x="8" y="2" width="4" height="14" rx="2" />
     <rect x="8" y="46" width="4" height="16" rx="2" />
@@ -66,27 +81,40 @@ const Moto = () => (
   </svg>
 )
 
-type BayProps = { bay: BayMapItem; labelFirst: boolean; last: boolean }
+type BayProps = {
+  bay: BayMapItem
+  labelFirst: boolean
+  last: boolean
+  compact: boolean
+  summary: boolean
+}
 
-const Bay = ({ bay, labelFirst, last }: BayProps) => {
+const Bay = ({ bay, labelFirst, last, compact, summary }: BayProps) => {
   const { id, state, vehicle = 'car' } = bay
   const tag = (
-    <span className="grid justify-items-center gap-2 px-2">
+    <span className={cx('grid justify-items-center gap-2', compact ? 'px-1.5' : 'px-2')}>
       <span className={cx('h-1 w-full max-w-14 rounded-bay', BAR[state])} />
-      <span className={cx('font-mono text-label font-bold', INK[state])}>{id}</span>
+      {summary ? null : (
+        <span className={cx('font-mono text-label font-bold', INK[state])}>{id}</span>
+      )}
     </span>
   )
   return (
     <li
-      aria-label={`${id}: ${LABELS[state]}`}
+      aria-label={summary ? undefined : `${id}: ${LABELS[state]}`}
       data-state={state}
-      className={cx('grid gap-3', labelFirst ? 'grid-rows-[auto_1fr]' : 'grid-rows-[1fr_auto]')}
+      className={cx(
+        'grid',
+        compact ? 'gap-2' : 'gap-3',
+        labelFirst ? 'grid-rows-[auto_1fr]' : 'grid-rows-[1fr_auto]',
+      )}
     >
       {labelFirst ? tag : null}
       <span
         aria-hidden="true"
         className={cx(
-          'flex h-28 items-center justify-center border-concrete-300 border-l-2',
+          'flex items-center justify-center border-concrete-300 border-l-2',
+          compact ? 'h-16' : 'h-28',
           // Borde exterior que une las bahías: del lado opuesto al rótulo, abierto hacia el carril.
           labelFirst ? 'border-b-2' : 'border-t-2',
           last && 'border-r-2',
@@ -94,8 +122,14 @@ const Bay = ({ bay, labelFirst, last }: BayProps) => {
           state === 'taken' && 'text-status-taken-on-dark',
         )}
       >
-        {state === 'held' ? <Ticket size={28} strokeWidth={2} /> : null}
-        {state === 'taken' ? vehicle === 'moto' ? <Moto /> : <Car /> : null}
+        {state === 'held' ? <Ticket size={compact ? 20 : 28} strokeWidth={2} /> : null}
+        {state === 'taken' ? (
+          vehicle === 'moto' ? (
+            <Moto compact={compact} />
+          ) : (
+            <Car compact={compact} />
+          )
+        ) : null}
       </span>
       {labelFirst ? null : tag}
     </li>
@@ -103,16 +137,28 @@ const Bay = ({ bay, labelFirst, last }: BayProps) => {
 }
 
 /** Plano del parqueadero visto desde arriba: el estado se lee por vehículo, ticket, rótulo y color. */
-export const BayMap = ({ bays, columns = 6, label }: BayMapProps) => {
+export const BayMap = ({
+  bays,
+  columns = 6,
+  label,
+  compact = false,
+  summary = false,
+}: BayMapProps) => {
   const rows = Array.from({ length: Math.ceil(bays.length / columns) }, (_, i) =>
     bays.slice(i * columns, (i + 1) * columns),
   )
 
   return (
-    <section aria-label={label} className="overflow-x-auto rounded-card bg-asphalt-950 p-4">
-      <div className="grid min-w-[22rem] gap-5">
+    <section
+      aria-label={label}
+      className={cx('overflow-x-auto rounded-card bg-asphalt-950', compact ? 'p-3' : 'p-4')}
+    >
+      <div
+        aria-hidden={summary || undefined}
+        className={cx('grid', compact ? 'min-w-[15rem] gap-3' : 'min-w-[22rem] gap-5')}
+      >
         {rows.map((row, index) => (
-          <div key={row[0]?.id} className="grid gap-5">
+          <div key={row[0]?.id} className={cx('grid', compact ? 'gap-3' : 'gap-5')}>
             {index > 0 ? <hr className="border-asphalt-600 border-t-2 border-dashed" /> : null}
             <ul
               className="grid"
@@ -124,6 +170,8 @@ export const BayMap = ({ bays, columns = 6, label }: BayMapProps) => {
                   bay={bay}
                   labelFirst={index % 2 === 1}
                   last={i === row.length - 1}
+                  compact={compact}
+                  summary={summary}
                 />
               ))}
             </ul>
