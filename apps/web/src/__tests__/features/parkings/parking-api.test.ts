@@ -8,8 +8,8 @@ vi.mock('@lib/api', () => ({ api: { get: vi.fn() } }))
 const get = vi.mocked(api.get)
 const PARQUE_93 = MOCK_PARKINGS[0]
 
-const useRealApi = () => vi.stubEnv('VITE_API_URL', 'https://api.example.test')
-const useDemoData = () => vi.stubEnv('VITE_API_URL', '')
+const useRealApi = () => vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.test')
+const useDemoData = () => vi.stubEnv('NEXT_PUBLIC_API_URL', '')
 
 afterEach(() => {
   vi.unstubAllEnvs()

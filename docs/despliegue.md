@@ -99,9 +99,9 @@ Notas del lab:
 
 | Variable | Salida del stack |
 |---|---|
-| `VITE_API_URL` | `ApiUrl` |
-| `VITE_USER_POOL_ID` | `UserPoolId` |
-| `VITE_USER_POOL_CLIENT_ID` | `UserPoolClientId` |
+| `NEXT_PUBLIC_API_URL` | `ApiUrl` |
+| `NEXT_PUBLIC_COGNITO_USER_POOL_ID` | `UserPoolId` |
+| `NEXT_PUBLIC_COGNITO_CLIENT_ID` | `UserPoolClientId` |
 
 ## 4. Frontend en S3 con dominio propio (Cloudflare)
 
@@ -140,9 +140,9 @@ vuelve a `https://parkfacil.app/` con un código (Authorization Code + PKCE).
 2. En GitHub, secretos `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`. Opcional: variable
    `COGNITO_DOMAIN_PREFIX` si `parkfacil-auth` ya está tomado (cambia también las URLs del paso 1).
 3. Ejecuta **Deploy**. El stack crea el proveedor Google y el dominio de Cognito; el job del frontend
-   lee la salida `CognitoDomain` y la compila como `VITE_COGNITO_DOMAIN`.
+   lee la salida `CognitoDomain` y la compila como `NEXT_PUBLIC_COGNITO_DOMAIN`.
 4. Callbacks permitidos en Cognito: `https://parkfacil.app/` y `http://localhost:5173/`. Para
-   probar en local, pon `VITE_COGNITO_DOMAIN` en `apps/web/.env`.
+   probar en local, pon `NEXT_PUBLIC_COGNITO_DOMAIN` en `apps/web/.env`.
 
 Si Google responde `redirect_uri_mismatch`, la URI del paso 1 no coincide con el dominio de
 Cognito. Si Cognito responde `redirect_mismatch`, el origen del sitio no está en `OAuthCallbackUrls`.

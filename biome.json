@@ -7,7 +7,16 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/dist", "!**/.aws-sam", "!docs", "!**/*.svg"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/.next",
+      "!**/out",
+      "!**/next-env.d.ts",
+      "!**/.aws-sam",
+      "!docs",
+      "!**/*.svg"
+    ]
   },
   "formatter": {
     "enabled": true,

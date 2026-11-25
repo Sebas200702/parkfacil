@@ -85,8 +85,7 @@ jobs:
             # Cognito solo vuelve de Google a URLs registradas: el dominio y el entorno local.
             PARAMS+=(OAuthCallbackUrls="https://$FRONTEND_DOMAIN/,http://localhost:5173/")
           fi
-          # Vite genera una SPA sin 404.html: S3 debe responder index.html ante rutas desconocidas.
-          ls apps/web/next.config.* >/dev/null 2>&1 || PARAMS+=(FrontendErrorDocument=index.html)
+          # Next.js exporta su propio 404.html: S3 usa el documento de error por defecto del stack.
           aws cloudformation deploy --template-file packaged.yaml --stack-name "$STACK_NAME" \
             --capabilities CAPABILITY_AUTO_EXPAND --no-fail-on-empty-changeset \
             --parameter-overrides "${PARAMS[@]}"
@@ -123,26 +122,20 @@ jobs:
             echo "website=$(out FrontendWebsiteUrl)"
             echo "cognito=$(out CognitoDomain)"
           } >> "$GITHUB_OUTPUT"
-      # Se exportan los nombres de Next.js y de Vite mientras se completa la migración a Next.js.
       - name: Build web
         env:
           NEXT_PUBLIC_API_URL: ${{ steps.stack.outputs.api }}
           NEXT_PUBLIC_AWS_REGION: ${{ env.AWS_REGION }}
           NEXT_PUBLIC_COGNITO_USER_POOL_ID: ${{ steps.stack.outputs.pool }}
           NEXT_PUBLIC_COGNITO_CLIENT_ID: ${{ steps.stack.outputs.client }}
-          VITE_API_URL: ${{ steps.stack.outputs.api }}
-          VITE_USER_POOL_ID: ${{ steps.stack.outputs.pool }}
-          VITE_USER_POOL_CLIENT_ID: ${{ steps.stack.outputs.client }}
-          VITE_COGNITO_DOMAIN: ${{ steps.stack.outputs.cognito }}
+          NEXT_PUBLIC_COGNITO_DOMAIN: ${{ steps.stack.outputs.cognito }}
         run: npm run build -w @parkfacil/web
       - name: Upload to S3
         env:
           BUCKET: ${{ steps.stack.outputs.bucket }}
         run: |
-          # next export genera out/; Vite genera dist/.
-          DIR=apps/web/out
-          [ -d "$DIR" ] || DIR=apps/web/dist
-          aws s3 sync "$DIR" "s3://$BUCKET" --delete
+          # next build con output: export deja el sitio estático en out/.
+          aws s3 sync apps/web/out "s3://$BUCKET" --delete
       - name: Summary
         run: |
           {

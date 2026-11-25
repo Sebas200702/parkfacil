@@ -7,11 +7,16 @@ import { Button } from '@shared/ui/button'
 import { EmptyState } from '@shared/ui/empty-state'
 import { Segmented } from '@shared/ui/segmented'
 import { LocateFixed } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useMemo, useState } from 'react'
 import { LocationPrompt } from './location-prompt'
 import { LotRow } from './lot-row'
 import { ParkingDetail } from './parking-detail'
-import { ParkingMap } from './parking-map'
+
+// Leaflet necesita el navegador (usa window al cargarse): el mapa se carga solo en el cliente.
+const ParkingMap = dynamic(() => import('./parking-map').then((module) => module.ParkingMap), {
+  ssr: false,
+})
 
 type ParkingResultsProps = {
   status: 'loading' | 'ready' | 'error'
