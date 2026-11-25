@@ -82,7 +82,7 @@ describe('AdminLayout', () => {
     renderWithAuth(<AdminLayout currentRoute="/admin/metricas" />, auth)
 
     expect(screen.getByTestId('admin-section-metricas')).toBeDefined()
-    expect(screen.getByText('Métricas y estadísticas')).toBeDefined()
+    expect(screen.getByRole('heading', { name: 'Métricas operativas' })).toBeDefined()
   })
 
   it('permite navegar entre secciones usando el control segmentado', () => {
