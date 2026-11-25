@@ -9,25 +9,11 @@ const PARQUE_93 = MOCK_PARKINGS[0] as Parking
 type RowOptions = {
   vehicle?: VehicleType
   meters?: number | null
-  selected?: boolean
-  onSelect?: (id: string) => void
+  onOpen?: (id: string) => void
 }
 
-const renderRow = ({
-  vehicle = 'CARRO',
-  meters = null,
-  selected = false,
-  onSelect = vi.fn(),
-}: RowOptions = {}) =>
-  render(
-    <LotRow
-      parking={PARQUE_93}
-      vehicle={vehicle}
-      meters={meters}
-      selected={selected}
-      onSelect={onSelect}
-    />,
-  )
+const renderRow = ({ vehicle = 'CARRO', meters = null, onOpen = vi.fn() }: RowOptions = {}) =>
+  render(<LotRow parking={PARQUE_93} vehicle={vehicle} meters={meters} onOpen={onOpen} />)
 
 describe('LotRow', () => {
   it('muestra nombre, dirección, tarifa por hora y cupos del tipo elegido', () => {
@@ -56,18 +42,12 @@ describe('LotRow', () => {
     expect(screen.getByRole('button').textContent).toContain('· a 350 m')
   })
 
-  it('avisa qué parqueadero se eligió', () => {
-    const onSelect = vi.fn()
-    renderRow({ onSelect })
+  it('abre el detalle del parqueadero al pulsarla', () => {
+    const onOpen = vi.fn()
+    renderRow({ onOpen })
 
     fireEvent.click(screen.getByRole('button'))
 
-    expect(onSelect).toHaveBeenCalledWith('centro-93')
-  })
-
-  it('marca la fila elegida', () => {
-    renderRow({ selected: true })
-
-    expect(screen.getByRole('button').getAttribute('aria-pressed')).toBe('true')
+    expect(onOpen).toHaveBeenCalledWith('centro-93')
   })
 })
