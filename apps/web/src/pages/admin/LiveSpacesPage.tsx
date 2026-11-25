@@ -1,4 +1,5 @@
 import type { Espacio, SpaceState, VehicleType } from '@lib/types'
+import { BayMap } from '@shared/ui/bay-map'
 import { type BayState, BayStatus } from '@shared/ui/bay-status'
 import { Button } from '@shared/ui/button'
 import { CupoMeter } from '@shared/ui/cupo-meter'
@@ -25,8 +26,6 @@ const TILE: Record<SpaceState, string> = {
   RESERVADO: 'border-status-held-ink bg-status-held-tint',
   OCUPADO: 'border-status-taken bg-status-taken-tint',
 }
-
-const TYPE_LABEL: Record<VehicleType, string> = { CARRO: 'Carro', MOTO: 'Moto' }
 
 const formatTime = (date: Date) =>
   date.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', second: '2-digit' })
@@ -104,20 +103,14 @@ export const LiveSpacesPage = () => {
             <Stat label="Ocupados" value={count(visible, 'OCUPADO')} state="OCUPADO" />
           </div>
           <CupoMeter free={libres} capacity={visible.length} />
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-            {visible.map((s) => (
-              <li
-                key={s.id}
-                data-testid={`espacio-${s.id}`}
-                data-estado={s.estado}
-                className={cx('grid gap-1 rounded-plate border-2 p-3', TILE[s.estado])}
-              >
-                <strong className="font-mono text-asphalt-950">{s.id}</strong>
-                <span className="text-caption text-asphalt-600">{TYPE_LABEL[s.tipo]}</span>
-                <BayStatus state={BAY[s.estado]} />
-              </li>
-            ))}
-          </ul>
+          <BayMap
+            label="Plano de espacios del parqueadero"
+            bays={visible.map((s) => ({
+              id: s.id,
+              state: BAY[s.estado],
+              vehicle: s.tipo === 'MOTO' ? 'moto' : 'car',
+            }))}
+          />
         </>
       )}
     </div>

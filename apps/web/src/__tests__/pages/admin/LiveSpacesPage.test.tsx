@@ -45,10 +45,9 @@ describe('LiveSpacesPage', () => {
     await flush()
 
     expect(get).toHaveBeenCalledWith('/admin/espacios')
-    expect(screen.getByTestId('espacio-A1').getAttribute('data-estado')).toBe('LIBRE')
-    expect(screen.getByTestId('espacio-A1').className).toContain('bg-status-free-tint')
-    expect(screen.getByTestId('espacio-A2').className).toContain('bg-status-held-tint')
-    expect(screen.getByTestId('espacio-A3').className).toContain('bg-status-taken-tint')
+    expect(screen.getByLabelText('A1: Libre').getAttribute('data-state')).toBe('free')
+    expect(screen.getByLabelText('A2: Reservado').getAttribute('data-state')).toBe('held')
+    expect(screen.getByLabelText('A3: Ocupado').getAttribute('data-state')).toBe('taken')
     expect(screen.getByTestId('resumen-LIBRE').textContent).toContain('2')
     expect(screen.getByTestId('resumen-RESERVADO').textContent).toContain('1')
     expect(screen.getByTestId('resumen-OCUPADO').textContent).toContain('1')
@@ -62,8 +61,8 @@ describe('LiveSpacesPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Motos' }))
 
-    expect(screen.queryByTestId('espacio-A1')).toBeNull()
-    expect(screen.getByTestId('espacio-M1')).toBeDefined()
+    expect(screen.queryByLabelText('A1: Libre')).toBeNull()
+    expect(screen.getByLabelText('M1: Libre')).toBeDefined()
     expect(screen.getByTestId('resumen-LIBRE').textContent).toContain('1')
   })
 
