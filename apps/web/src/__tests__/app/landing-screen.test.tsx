@@ -20,6 +20,7 @@ const hrefs = (name: string) =>
 
 afterEach(() => {
   push.mockReset()
+  window.history.replaceState({}, '', '/')
 })
 
 describe('LandingScreen', () => {
@@ -87,7 +88,16 @@ describe('LandingScreen', () => {
     expect(push).not.toHaveBeenCalled()
   })
 
-  it('manda directo al mapa a quien ya tiene sesión', () => {
+  it('deja ver la landing a quien ya tiene sesión', () => {
+    renderLanding(true)
+
+    expect(push).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
+  })
+
+  it('manda al mapa a quien vuelve de iniciar sesión con Google', () => {
+    window.history.replaceState({}, '', '/?code=abc&state=xyz')
+
     renderLanding(true)
 
     expect(push).toHaveBeenCalledWith('/mapa')

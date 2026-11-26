@@ -11,7 +11,7 @@ import { PlanSection } from '@features/landing/plan-section'
 import { StepsSection } from '@features/landing/steps-section'
 import { TicketSection } from '@features/landing/ticket-section'
 import { useNavigate } from '@shared/hooks/use-navigate'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 const MARQUEE = 'MIRA EL MAPA ✦ APARTA TU CUPO ✦ LLEGA EN 15 MINUTOS ✦ '
 
@@ -32,11 +32,16 @@ const Marquee = () => (
 export const LandingScreen = () => {
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
+  // Cognito devuelve el login con Google a "/" con ?code=. Se lee al montar porque
+  // AuthContext limpia la URL al canjear el código.
+  const [fromGoogle] = useState(
+    () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code'),
+  )
 
-  // Quien ya tiene sesión (o vuelve de iniciar con Google) va directo al mapa.
+  // Solo quien vuelve de iniciar con Google va directo al mapa; con sesión previa la landing se ve.
   useEffect(() => {
-    if (isAuthenticated) navigate('/mapa')
-  }, [isAuthenticated, navigate])
+    if (fromGoogle && isAuthenticated) navigate('/mapa')
+  }, [fromGoogle, isAuthenticated, navigate])
 
   return (
     <div className="overflow-hidden bg-cream">
