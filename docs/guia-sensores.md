@@ -14,31 +14,43 @@ ParkFácil permite recibir lecturas de sensores mediante MQTT o HTTP.
 
    `parkfacil/{parqueaderoId}/espacios/{espacioId}`
 
-3. Una regla de AWS IoT Core identifica el parqueadero y el espacio a partir del tópico.
+3. Una regla de AWS IoT Core extrae los identificadores del tópico.
 4. La regla invoca la función Lambda `sensor-iot`.
-5. La función valida el mensaje y ejecuta el procesamiento del evento.
+5. La función valida y procesa el mensaje.
 6. El servicio actualiza la información correspondiente en DynamoDB.
 
 ### Flujo HTTP alternativo
 
-También se puede enviar una lectura mediante:
+También se pueden enviar lecturas mediante `POST /sensores/eventos`, utilizando la clave configurada en `SENSOR_API_KEY` a través del encabezado `x-api-key`.
 
-`POST /sensores/eventos`
+Ejemplo de solicitud:
 
-Esta alternativa requiere enviar la clave configurada en `SENSOR_API_KEY` mediante el encabezado `x-api-key`.
+```bash
+curl -X POST "<API_URL>/sensores/eventos" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: <SENSOR_API_KEY>" \
+  -d '{
+    "parqueaderoId": "centro-93",
+    "espacioId": "C-01",
+    "estado": "OCUPADO",
+    "ts": 1763900000
+  }'
+```
+
+Reemplaza `<API_URL>` y `<SENSOR_API_KEY>` por los valores de tu entorno. Los identificadores del parqueadero y del espacio deben existir en DynamoDB.
 
 ## 2. Estructura del mensaje del sensor
 
-El mensaje debe contener los siguientes campos:
+El mensaje utiliza los siguientes campos:
 
-| Campo | Obligatorio | Descripción |
-|---|---|---|
-| `parqueaderoId` | Sí | Identificador del parqueadero. |
-| `espacioId` | Sí | Identificador del espacio. |
-| `estado` | Sí | Estado del espacio: `LIBRE` u `OCUPADO`. |
-| `ts` | No | Fecha del evento en segundos Unix. Si se omite, se utiliza la hora de llegada. |
+| Campo | Descripción |
+|---|---|
+| `parqueaderoId` | Identificador del parqueadero. En MQTT se obtiene del tópico. |
+| `espacioId` | Identificador del espacio. En MQTT se obtiene del tópico. |
+| `estado` | Estado del espacio: `LIBRE` u `OCUPADO`. |
+| `ts` | Marca de tiempo opcional en segundos Unix. Si se omite, se utiliza la hora de llegada. |
 
-El sistema valida que el estado sea `LIBRE` u `OCUPADO` y rechaza marcas de tiempo que estén más de cinco minutos en el futuro.
+El sistema valida los campos y rechaza fechas que superen los cinco minutos de adelanto respecto a la hora actual.
 
 ## 3. Prueba manual desde AWS IoT Core
 
@@ -53,7 +65,7 @@ Para probar la recepción de eventos mediante MQTT:
 
    `parkfacil/centro-93/espacios/<espacioId>`
 
-7. Envía un mensaje JSON como el siguiente:
+7. Envía un mensaje JSON:
 
    ```json
    {
@@ -66,11 +78,11 @@ Para probar la recepción de eventos mediante MQTT:
 
 Para probar la salida de un vehículo, publica otro mensaje cambiando el estado a `LIBRE`.
 
-**Importante:** reemplaza `centro-93` y `<espacioId>` por identificadores que existan en DynamoDB. La regla MQTT obtiene `parqueaderoId` y `espacioId` directamente del tópico.
+**Importante:** utiliza identificadores de parqueadero y espacios existentes. En MQTT, `parqueaderoId` y `espacioId` se extraen automáticamente del tópico.
 
 ## 4. Simulador automatizado de sensores
 
-El proyecto incluye un simulador para generar lecturas automáticamente.
+El proyecto incluye un simulador ubicado en `services/api/src/scripts/sensor-sim.ts`.
 
 Desde la raíz del proyecto, ejecuta:
 
@@ -99,9 +111,7 @@ También se puede utilizar el modo HTTP configurando las variables necesarias:
 PARQUEADERO=centro-93 MODO=http API_URL=<URL_API> SENSOR_API_KEY=<CLAVE> npm run sensor-sim -w @parkfacil/api
 ```
 
-En este modo, el simulador envía las lecturas al endpoint `POST /sensores/eventos`.
-
-La clave debe coincidir con la configurada en `SENSOR_API_KEY` en la infraestructura.
+En este modo, el simulador envía las lecturas al endpoint `POST /sensores/eventos`. La clave debe coincidir con la configurada en `SENSOR_API_KEY` en la infraestructura.
 
 ## 5. Comportamiento esperado del sistema
 
@@ -123,7 +133,7 @@ Cuando ocurre una entrada o salida, el sistema registra el evento correspondient
 
 Después de enviar los mensajes, verifica lo siguiente:
 
-- El estado del espacio se actualiza correctamente en DynamoDB.
+- El estado del espacio se actualiza correctamente.
 - Los cupos disponibles disminuyen cuando un espacio pasa de `LIBRE` a `OCUPADO`.
 - Los cupos disponibles aumentan cuando un espacio pasa de `OCUPADO` a `LIBRE`.
 - Una reserva asociada al espacio pasa a `CUMPLIDA` cuando el vehículo ocupa el espacio reservado.
@@ -131,4 +141,3 @@ Después de enviar los mensajes, verifica lo siguiente:
 - Los eventos de entrada y salida quedan registrados en DynamoDB bajo la partición `PARQ#<parqueaderoId>` y una clave de ordenamiento que comienza con `EVENTO#`.
 
 Los eventos tienen un periodo de retención de 30 días mediante el atributo TTL `expiraEn`.
-
