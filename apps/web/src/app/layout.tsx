@@ -4,7 +4,8 @@ import type { ReactNode } from 'react'
 import { AppShell } from './app-shell'
 
 export const metadata: Metadata = {
-  title: 'ParkFácil',
+  // Cada ruta pone su nombre en su layout: "Mis reservas · ParkFácil".
+  title: { default: 'ParkFácil', template: '%s · ParkFácil' },
   description: 'Consulta cupos de parqueadero en vivo y aparta el tuyo por 15 minutos.',
   icons: { icon: '/favicon.svg' },
 }
