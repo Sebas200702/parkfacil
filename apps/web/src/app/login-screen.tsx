@@ -159,7 +159,7 @@ export const LoginScreen = ({ onNavigate }: LoginScreenProps) => {
             <button
               type="button"
               onClick={() => onNavigate?.('/registro')}
-              className="font-bold text-brand-600 underline decoration-2 underline-offset-4 focus-visible:outline-focus"
+              className="inline-flex min-h-11 cursor-pointer items-center rounded-plate px-1 font-bold text-brand-600 underline decoration-2 underline-offset-4 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               Regístrate aquí
             </button>
