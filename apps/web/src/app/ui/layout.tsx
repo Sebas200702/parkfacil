@@ -1,9 +1,13 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
-export const metadata: Metadata = { title: 'Sistema de diseño' }
+// Ruta privada: no se indexa (robots.txt también la bloquea).
+export const metadata: Metadata = {
+  title: 'Sistema de diseño',
+  robots: { index: false, follow: false },
+}
 
-/** Solo aporta el título de la pestaña de esta ruta. */
+/** Solo aporta los metadatos de esta ruta (título, descripción, indexación). */
 export default function UiLayout({ children }: { children: ReactNode }) {
   return children
 }

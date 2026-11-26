@@ -1,9 +1,13 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
-export const metadata: Metadata = { title: 'Parqueaderos' }
+export const metadata: Metadata = {
+  title: 'Parqueaderos',
+  description: 'Mapa de parqueaderos en Bogotá con cupos libres en vivo para carro y moto.',
+  alternates: { canonical: '/mapa/' },
+}
 
-/** Solo aporta el título de la pestaña de esta ruta. */
+/** Solo aporta los metadatos de esta ruta (título, descripción, indexación). */
 export default function MapLayout({ children }: { children: ReactNode }) {
   return children
 }
