@@ -162,6 +162,16 @@ describe('ReservePanel con reserva', () => {
     expect(cancel).toHaveBeenCalledTimes(1)
   })
 
+  it('al abrir la pregunta lleva el foco a ella', () => {
+    renderPanel({ reservation: RESERVATION })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar reserva' }))
+
+    expect(document.activeElement).toBe(
+      screen.getByRole('group', { name: '¿Cancelar la reserva?' }),
+    )
+  })
+
   it('deja arrepentirse sin cancelar', () => {
     const { cancel } = renderPanel({ reservation: RESERVATION })
 

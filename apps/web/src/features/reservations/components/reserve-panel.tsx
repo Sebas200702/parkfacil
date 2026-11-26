@@ -1,6 +1,7 @@
 import { VEHICLE_PLURAL } from '@features/parkings/parking-consts'
 import type { Parking, VehicleType } from '@features/parkings/parking-types'
 import type { ReservationController } from '@features/reservations/hooks/use-reservation'
+import { useFocusWhenDone } from '@shared/hooks/use-focus-when-done'
 import { Button } from '@shared/ui/button'
 import { ButtonLink } from '@shared/ui/button-link'
 import { Notice } from '@shared/ui/notice'
@@ -64,43 +65,54 @@ export const ReservePanel = ({
   onOpenParking,
 }: ReservePanelProps) => {
   const { reservation, notice } = controller
+  // Al reservar o cancelar, el botón pulsado desaparece: el foco pasa a esta zona,
+  // donde ahora está el tiquete o el aviso de lo que pasó.
+  const panelRef = useFocusWhenDone<HTMLDivElement>(controller.reserving || controller.cancelling)
 
-  if (reservation?.parqueaderoId === parking.id) {
-    return (
-      <div className="grid gap-3">
-        <ReservationTicket reservation={reservation} />
-        <CancelReservation
-          cancel={controller.cancel}
-          cancelling={controller.cancelling}
-          cancelProblem={controller.cancelProblem}
-        />
-      </div>
-    )
-  }
+  const content = () => {
+    if (reservation?.parqueaderoId === parking.id) {
+      return (
+        <>
+          <ReservationTicket reservation={reservation} />
+          <CancelReservation
+            cancel={controller.cancel}
+            cancelling={controller.cancelling}
+            cancelProblem={controller.cancelProblem}
+          />
+        </>
+      )
+    }
 
-  if (reservation) {
+    if (reservation) {
+      return (
+        <>
+          <Notice tone="warn" title="Ya tienes una reserva activa">
+            {reservedParkingName ? `Está en ${reservedParkingName}. ` : ''}
+            Solo puedes tener una a la vez.
+          </Notice>
+          <Button
+            variant="secondary"
+            icon={Ticket}
+            block
+            onClick={() => onOpenParking(reservation.parqueaderoId)}
+          >
+            Ver mi reserva
+          </Button>
+        </>
+      )
+    }
+
     return (
-      <div className="grid gap-3">
-        <Notice tone="warn" title="Ya tienes una reserva activa">
-          {reservedParkingName ? `Está en ${reservedParkingName}. ` : ''}
-          Solo puedes tener una a la vez.
-        </Notice>
-        <Button
-          variant="secondary"
-          icon={Ticket}
-          block
-          onClick={() => onOpenParking(reservation.parqueaderoId)}
-        >
-          Ver mi reserva
-        </Button>
-      </div>
+      <>
+        {notice?.parkingId === parking.id ? <ReservationNoticeBox kind={notice.kind} /> : null}
+        <ReserveAction parking={parking} vehicle={vehicle} controller={controller} />
+      </>
     )
   }
 
   return (
-    <div className="grid gap-3">
-      {notice?.parkingId === parking.id ? <ReservationNoticeBox kind={notice.kind} /> : null}
-      <ReserveAction parking={parking} vehicle={vehicle} controller={controller} />
-    </div>
+    <section ref={panelRef} tabIndex={-1} aria-label="Reserva" className="grid gap-3 outline-none">
+      {content()}
+    </section>
   )
 }

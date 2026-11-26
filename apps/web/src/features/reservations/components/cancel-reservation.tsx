@@ -2,7 +2,7 @@ import type { ReservationController } from '@features/reservations/hooks/use-res
 import { Button } from '@shared/ui/button'
 import { Notice } from '@shared/ui/notice'
 import { X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type CancelReservationProps = Pick<ReservationController, 'cancel' | 'cancelling' | 'cancelProblem'>
 
@@ -20,11 +20,21 @@ export const CancelReservation = ({
   cancelProblem,
 }: CancelReservationProps) => {
   const [confirming, setConfirming] = useState(false)
+  const asking = confirming || cancelling
+  const boxRef = useRef<HTMLDivElement & HTMLFieldSetElement>(null)
+  const wasAsking = useRef(asking)
   const problem = cancelProblem ? PROBLEMS[cancelProblem] : null
 
-  if (!confirming && !cancelling) {
+  // Al abrir o cerrar la pregunta, el botón pulsado desaparece: el foco pasa a este bloque
+  // para que teclado y lector de pantalla sigan aquí y oigan la pregunta.
+  useEffect(() => {
+    if (wasAsking.current !== asking) boxRef.current?.focus()
+    wasAsking.current = asking
+  }, [asking])
+
+  if (!asking) {
     return (
-      <div className="grid gap-3">
+      <div ref={boxRef} tabIndex={-1} className="grid gap-3 outline-none">
         {problem ? (
           <Notice tone="error" title={problem.title}>
             {problem.body}
@@ -38,9 +48,14 @@ export const CancelReservation = ({
   }
 
   return (
-    <fieldset className="grid gap-3 rounded-plate border-2 border-status-taken p-4">
+    <fieldset
+      ref={boxRef}
+      tabIndex={-1}
+      aria-describedby="cancel-consequence"
+      className="grid gap-3 rounded-plate border-2 border-status-taken p-4 outline-none"
+    >
       <legend className="px-1 font-bold">¿Cancelar la reserva?</legend>
-      <p className="text-[0.9375rem] leading-[1.375rem] text-asphalt-600">
+      <p id="cancel-consequence" className="text-[0.9375rem] leading-[1.375rem] text-asphalt-600">
         El cupo queda libre para otra persona. No se puede deshacer.
       </p>
       <div className="grid grid-cols-2 gap-2">

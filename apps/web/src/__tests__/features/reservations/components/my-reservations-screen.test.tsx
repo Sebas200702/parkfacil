@@ -3,7 +3,7 @@ import { MOCK_PARKINGS } from '@features/parkings/parking-mocks'
 import { MyReservationsScreen } from '@features/reservations/components/my-reservations-screen'
 import { cancelReservation, fetchMyReservations } from '@features/reservations/reservation-api'
 import type { Reservation } from '@features/reservations/reservation-types'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@features/parkings/parking-api', () => ({ fetchParkings: vi.fn() }))
@@ -103,6 +103,22 @@ describe('MyReservationsScreen', () => {
     expect(screen.queryByRole('timer')).toBeNull()
     const history = await screen.findByRole('region', { name: 'Anteriores' })
     expect(within(history).getByText('Cancelada')).toBeDefined()
+    expect(within(history).queryByText('Activa')).toBeNull()
+  })
+
+  it('tras cancelar deja el foco en el título, junto al aviso', async () => {
+    const active = reservation()
+    fetchMock.mockResolvedValue([active])
+    cancelMock.mockResolvedValue({ ok: true, reservation: { ...active, estado: 'CANCELADA' } })
+    render(<MyReservationsScreen />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancelar reserva' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, cancelar' }))
+
+    await screen.findByText('Reserva cancelada')
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 })),
+    )
   })
 
   it('si la red falla ofrece reintentar', async () => {
