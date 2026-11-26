@@ -62,3 +62,4 @@ de pantalla real ni en un teléfono físico.
    git clone [https://github.com/Sebas200702/parkfacil.git](https://github.com/Sebas200702/parkfacil.git)
    cd parkfacil
    npm install
+   
