@@ -5,9 +5,11 @@ import { type ParkingRow, toParkingRows } from '@features/parkings/utils/parking
 import { ReservationBanner } from '@features/reservations/components/reservation-banner'
 import { useReservation } from '@features/reservations/hooks/use-reservation'
 import { useGeolocation } from '@shared/hooks/use-geolocation'
+import { usePageTitle } from '@shared/hooks/use-page-title'
 import { Button } from '@shared/ui/button'
 import { EmptyState } from '@shared/ui/empty-state'
 import { Segmented } from '@shared/ui/segmented'
+import { cx } from '@shared/utils/cx'
 import { LocateFixed, Ticket } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
@@ -93,6 +95,8 @@ export const ParkingsScreen = () => {
   const [vehicle, setVehicle] = useState<VehicleType>('CARRO')
   const [openId, setOpenId] = useState<string | null>(null)
   const reservedParking = parkings.find((parking) => parking.id === reservation?.parqueaderoId)
+  const openParking = parkings.find((parking) => parking.id === openId)
+  usePageTitle(openParking?.nombre ?? 'Parqueaderos')
 
   const rows = useMemo(
     () => toParkingRows(parkings, geolocation.position),
@@ -121,7 +125,11 @@ export const ParkingsScreen = () => {
 
       <section
         aria-labelledby={openId ? 'parking-title' : 'parkings-title'}
-        className="relative z-10 -mt-3 flex max-h-[55%] flex-col rounded-t-card bg-paper shadow-sheet lg:mt-0 lg:max-h-none lg:w-[26rem] lg:rounded-none"
+        className={cx(
+          'relative z-10 -mt-3 flex flex-col rounded-t-card bg-paper shadow-sheet lg:mt-0 lg:max-h-none lg:w-[26rem] lg:rounded-none',
+          // En el teléfono el detalle (tiquete, plano, tarifas) necesita más alto que la lista.
+          openId ? 'max-h-[70%]' : 'max-h-[55%]',
+        )}
       >
         {openId ? (
           <div className="min-h-0 flex-1 overflow-y-auto">
