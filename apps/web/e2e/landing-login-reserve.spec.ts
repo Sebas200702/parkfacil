@@ -1,23 +1,26 @@
 import { expect, test } from '@playwright/test'
 
 test('flujo landing -> login -> reservar', async ({ page }) => {
-  const baseUrl = process.env.E2E_BASE_URL ?? 'http://localhost:5173'
-  await page.goto(baseUrl)
-  await expect(page.locator('body')).toBeVisible()
+  await page.addInitScript(() => {
+    window.sessionStorage.removeItem('parkfacil.demo.reservas')
+  })
 
-  const loginTrigger = page
-    .getByRole('link', { name: /iniciar sesion|iniciar sesión|login|ingresar/i })
-    .or(page.getByRole('button', { name: /iniciar sesion|iniciar sesión|login|ingresar/i }))
-    .first()
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: /llega con el cupo apartado/i })).toBeVisible()
 
-  if (await loginTrigger.count()) {
-    await loginTrigger.click()
-    await expect(page.locator('body')).toBeVisible()
-  }
+  await page.getByRole('link', { name: 'Entrar' }).click()
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible()
+  await expect(page.getByLabel('Correo electrónico')).toBeVisible()
+  await expect(page.getByLabel('Contraseña')).toBeVisible()
 
-  const reserveBtn = page.getByRole('button', { name: /reservar/i }).first()
-  if (await reserveBtn.count()) {
-    await reserveBtn.click()
-    await expect(page.locator('body')).toBeVisible()
-  }
+  await page.goto('/mapa')
+  await expect(page.getByRole('heading', { name: 'Parqueaderos' })).toBeVisible()
+
+  await page.getByRole('button', { name: /Parque 93/i }).click()
+  await expect(page.getByRole('heading', { name: 'Parque 93' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Reservar cupo' }).click()
+  await expect(page.getByRole('heading', { name: /Tu reserva.*carro/i })).toBeVisible()
+  await expect(page.getByText(/C-\d+/)).toBeVisible()
 })
