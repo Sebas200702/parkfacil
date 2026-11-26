@@ -1,5 +1,8 @@
 import { ButtonLink } from '@shared/ui/button-link'
 import { EmptyState } from '@shared/ui/empty-state'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = { title: 'Página no encontrada' }
 
 /** Página 404. La exportación estática la deja en out/404.html. */
 export default function NotFound() {

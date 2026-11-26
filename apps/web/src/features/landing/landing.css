@@ -113,6 +113,15 @@
     color 0.2s;
 }
 
+/* En pantallas táctiles el enlace crece hasta 44 px de alto para poder tocarlo sin fallar. */
+@media (pointer: coarse) {
+  .lp-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+}
+
 .lp-link:hover {
   background-size: 100% 2px;
   color: var(--color-paint);

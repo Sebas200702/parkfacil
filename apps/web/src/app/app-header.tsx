@@ -49,7 +49,7 @@ export const AppHeader = ({ onNavigate }: AppHeaderProps) => {
         <a
           href={homeRoute}
           onClick={handleBrandClick}
-          className={`group inline-flex min-w-0 items-center gap-2.5 ${LINK_FOCUS}`}
+          className={`group inline-flex min-h-11 min-w-0 items-center gap-2.5${LINK_FOCUS}`}
         >
           <BrandMark />
           <span className="truncate text-heading font-extrabold tracking-tight">ParkFácil</span>

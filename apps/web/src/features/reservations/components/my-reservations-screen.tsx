@@ -1,6 +1,7 @@
 import { useParkings } from '@features/parkings/hooks/use-parkings'
 import { useMyReservations } from '@features/reservations/hooks/use-my-reservations'
 import { useReservation } from '@features/reservations/hooks/use-reservation'
+import { useFocusWhenDone } from '@shared/hooks/use-focus-when-done'
 import { Button } from '@shared/ui/button'
 import { ButtonLink } from '@shared/ui/button-link'
 import { EmptyState } from '@shared/ui/empty-state'
@@ -23,9 +24,13 @@ export const MyReservationsScreen = () => {
     `${active?.id ?? ''}:${notice?.kind ?? ''}`,
   )
   const { parkings } = useParkings()
+  // Tras cancelar, el tiquete y su botón desaparecen: el foco vuelve al título, junto al aviso.
+  const titleRef = useFocusWhenDone<HTMLHeadingElement>(controller.cancelling)
 
   const nameOf = (parkingId: string) => parkings.find((parking) => parking.id === parkingId)?.nombre
-  const history = reservations.filter((reservation) => reservation.id !== active?.id)
+  // El historial son las que ya terminaron. Así, al cancelar, la reserva no aparece un instante
+  // como "Activa" mientras llega la lista actualizada.
+  const history = reservations.filter((reservation) => reservation.estado !== 'ACTIVA')
   const isEmpty = status === 'ready' && !active && history.length === 0
 
   return (
@@ -38,7 +43,9 @@ export const MyReservationsScreen = () => {
         Parqueaderos
       </Link>
 
-      <h1 className="text-title">Mis reservas</h1>
+      <h1 ref={titleRef} tabIndex={-1} className="text-title outline-none">
+        Mis reservas
+      </h1>
 
       {notice && !active ? <ReservationNoticeBox kind={notice.kind} /> : null}
 

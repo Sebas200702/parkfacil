@@ -22,9 +22,10 @@
   box-shadow: none;
 }
 
+/* 44 px por lado: el tamaño mínimo para tocar el zoom con el dedo sin fallar. */
 .leaflet-container .leaflet-bar a {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   color: var(--color-asphalt-950);
-  line-height: 36px;
+  line-height: 44px;
 }

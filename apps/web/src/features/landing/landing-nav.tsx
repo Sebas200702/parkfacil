@@ -43,7 +43,7 @@ export const LandingNav = () => {
     <header className="mx-auto grid w-full max-w-[85rem] grid-cols-[1fr_auto] items-center gap-x-4 gap-y-3 px-6 py-5 lg:flex lg:justify-between">
       <Link
         href="/"
-        className="lp-brand inline-flex items-center gap-3 justify-self-start font-display text-[1.15rem] font-black tracking-tight"
+        className="lp-brand inline-flex min-h-11 items-center gap-3justify-self-start font-display text-[1.15rem] font-black tracking-tight"
       >
         <BrandMark />
         PARKFÁCIL
