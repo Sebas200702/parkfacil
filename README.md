@@ -59,7 +59,46 @@ de pantalla real ni en un teléfono físico.
 ### Instalación y ejecución local contra el Learner Lab
 1. Clonar el repositorio e instalar las dependencias desde la raíz:
    ```bash
-   git clone [https://github.com/Sebas200702/parkfacil.git](https://github.com/Sebas200702/parkfacil.git)
+   git clone https://github.com/Sebas200702/parkfacil.git
    cd parkfacil
    npm install
-   
+   ```
+
+## Build, despliegue y dominio en producción
+
+- **Aplicación en producción:** <https://parkfacil.app>
+- **Distribución y DNS:** Amazon S3 (Static Website Hosting) + Cloudflare (DNS, caché perimetral y certificado SSL/TLS)
+
+### Construcción del frontend (exportación estática)
+El frontend en Next.js está configurado con `output: 'export'` en `apps/web/next.config.ts` para generar archivos estáticos compatibles con S3:
+
+```bash
+npm run build -w @parkfacil/web
+```
+Esto genera el directorio `apps/web/out/` listo para sincronizarse con el bucket S3.
+
+### Despliegue en AWS Academy Learner Lab
+1. **Backend e infraestructura (AWS SAM):**
+   ```bash
+   cd infra
+   sam build
+   sam deploy --no-confirm-changeset
+   ```
+2. **Sincronización del frontend en S3:**
+   ```bash
+   aws s3 sync apps/web/out/ s3://<NOMBRE_BUCKET_FRONTEND> --delete
+   ```
+
+## Flujo operativo y estructura del sistema
+
+### Ciclo de operación
+1. **Conductor:** Consulta disponibilidad en tiempo real por parqueadero, crea una reserva activa por **15 minutos** y recibe un tiquete digital con código único.
+2. **Sensores IoT (MQTT):** Los dispositivos físicos (o el simulador `tools/sensor-sim`) publican eventos de ocupación por bahía hacia **AWS IoT Core**, actualizando el estado en **DynamoDB**.
+3. **Vencimiento automático:** Una regla programada en **Amazon EventBridge** ejecuta una función Lambda periódica que libera automáticamente las reservas no reclamadas tras cumplirse los 15 minutos.
+4. **Administrador:** Gestiona tarifas dinámicas, parqueaderos, bahías y métricas operativas desde el panel administrativo autenticado con **Amazon Cognito**.
+
+### Arquitectura y recursos AWS
+- **Frontend estático y dominio:** Amazon S3 (Static Website Hosting) + Cloudflare (DNS, HTTPS y caché perimetral) en <https://parkfacil.app>.
+- **API y cómputo:** Amazon API Gateway (HTTP API) + AWS Lambda (Node.js 22 / TypeScript).
+- **Persistencia y autenticación:** Amazon DynamoDB (diseño single-table con bloqueo optimista para evitar doble reserva) + Amazon Cognito User Pools.
+- **Telemetría y tareas programadas:** AWS IoT Core + Amazon EventBridge.
