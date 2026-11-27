@@ -101,4 +101,4 @@ Esto genera el directorio `apps/web/out/` listo para sincronizarse con el bucket
 - **Frontend estático y dominio:** Amazon S3 (Static Website Hosting) + Cloudflare (DNS, HTTPS y caché perimetral) en <https://parkfacil.app>.
 - **API y cómputo:** Amazon API Gateway (HTTP API) + AWS Lambda (Node.js 22 / TypeScript).
 - **Persistencia y autenticación:** Amazon DynamoDB (diseño single-table con bloqueo optimista para evitar doble reserva) + Amazon Cognito User Pools.
-- **Telemetría y tareas programadas:** AWS IoT Core + Amazon EventBridge.
+- **Telemetría y tareas programadas:** AWS IoT Core + Amazon EventBridge. 
