@@ -29,4 +29,8 @@ jobs:
       - run: npm run test:int
         env:
           DYNAMODB_ENDPOINT: http://localhost:8000
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E reservation flow
+        run: npm run test:e2e -w @parkfacil/web
       - run: npm run build

@@ -11,3 +11,5 @@ samconfig.local.toml
 !.env.example
 *.log
 *.rpm
+test-results/
+playwright-report/
