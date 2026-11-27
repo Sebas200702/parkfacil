@@ -33,4 +33,11 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run E2E reservation flow
         run: npm run test:e2e -w @parkfacil/web
+        env:
+          NEXT_PUBLIC_API_URL: /api
+          API_PROXY_TARGET: https://qm7k00c3ie.execute-api.us-east-1.amazonaws.com
+          NEXT_PUBLIC_COGNITO_USER_POOL_ID: us-east-1_Vmomy3wX4
+          NEXT_PUBLIC_COGNITO_CLIENT_ID: 2574arg5uv33vm6ll8k473pmil
+          E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
       - run: npm run build
