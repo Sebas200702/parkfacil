@@ -13,3 +13,6 @@ samconfig.local.toml
 *.rpm
 test-results/
 playwright-report/
+
+# README images: Chrome build output
+tools/readme-assets/.build/

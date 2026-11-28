@@ -1,0 +1,235 @@
+/*
+ * Estilos de las placas del README. Reproducen la landing (apps/web/src/features/landing) con los
+ * mismos tokens de apps/web/src/shared/styles/theme.css. Si cambia un token, cámbialo aquí también.
+ * Lienzo de 1280 px: en GitHub se ve a ~70 %, por eso los textos son más grandes que en la app.
+ */
+@font-face {
+  font-family: Bricolage;
+  font-weight: 200 800;
+  src: url("../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2");
+}
+
+@font-face {
+  font-family: Martian;
+  font-weight: 100 800;
+  src: url("../../node_modules/@fontsource-variable/martian-mono/files/martian-mono-latin-wght-normal.woff2");
+}
+
+@font-face {
+  font-family: Unbounded;
+  font-weight: 200 900;
+  src: url("../../node_modules/@fontsource-variable/unbounded/files/unbounded-latin-wght-normal.woff2");
+}
+
+@font-face {
+  font-family: SpaceMono;
+  font-weight: 400;
+  src: url("../../node_modules/@fontsource/space-mono/files/space-mono-latin-400-normal.woff2");
+}
+
+@font-face {
+  font-family: SpaceMono;
+  font-weight: 700;
+  src: url("../../node_modules/@fontsource/space-mono/files/space-mono-latin-700-normal.woff2");
+}
+
+:root {
+  --brand-700: #3e149f;
+  --brand-600: #5522d6;
+  --brand-400: #8b6cf0;
+  --brand-100: #e8e0fb;
+  --paint: #f2b705;
+  --asphalt-950: #16131f;
+  --asphalt-800: #2a2636;
+  --asphalt-600: #504b60;
+  --asphalt-400: #7f7a90;
+  --concrete-300: #cbc8d4;
+  --concrete-200: #e0dee7;
+  --concrete-100: #eeedf2;
+  --paper: #fff;
+  --cream: #f4f1e8;
+  --free: #177a45;
+  --free-on-dark: #4ad68a;
+  --taken: #bf3324;
+  --taken-on-dark: #f0705f;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html,
+body {
+  background: var(--cream);
+}
+
+body {
+  width: 1280px;
+  font-family: Bricolage, system-ui, sans-serif;
+  font-size: 24px;
+  line-height: 1.5;
+  color: var(--asphalt-950);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Piezas sueltas (botones): se miden por su contenido y quedan con fondo transparente. */
+html:has(body.shrink),
+body.shrink {
+  width: max-content;
+  background: transparent;
+}
+
+.band {
+  padding: 72px 64px;
+  background: var(--cream);
+}
+
+.band.dark {
+  background: var(--asphalt-950);
+  color: var(--cream);
+}
+
+.band.violet {
+  position: relative;
+  overflow: hidden;
+  background: var(--brand-600);
+  color: var(--paper);
+  border-top: 4px solid var(--asphalt-950);
+}
+
+.display {
+  font-family: Unbounded, sans-serif;
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+}
+
+.heading {
+  font-family: Unbounded, sans-serif;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.mono {
+  font-family: SpaceMono, ui-monospace, monospace;
+  font-size: 20px;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.violet-text {
+  color: var(--brand-600);
+}
+
+.paint-text {
+  color: var(--paint);
+}
+
+svg {
+  display: block;
+  flex: none;
+}
+
+/* Botón de la landing: píldora con sombra dura. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 36px;
+  border: 3px solid var(--asphalt-950);
+  border-radius: 999px;
+  font-family: Unbounded, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 8px 8px 0 var(--shadow, var(--asphalt-950));
+}
+
+.btn.violet {
+  background: var(--brand-600);
+  color: var(--paper);
+}
+
+.btn.yellow {
+  background: var(--paint);
+  color: var(--asphalt-950);
+}
+
+.btn.dark {
+  background: var(--asphalt-950);
+  color: var(--cream);
+  --shadow: var(--brand-600);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--paper);
+  border-color: var(--paper);
+  --shadow: var(--brand-700);
+}
+
+.btn.paper {
+  background: var(--paper);
+  color: var(--asphalt-950);
+  --shadow: var(--brand-600);
+}
+
+/* Etiqueta en forma de píldora, como "carro y moto". */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px;
+  border: 3px solid currentcolor;
+  border-radius: 999px;
+}
+
+/* Tarjeta inclinada de la landing. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 4px solid var(--asphalt-950);
+  transform: rotate(var(--tilt, 0deg));
+}
+
+.photo {
+  border: 4px solid var(--asphalt-950);
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.photo img {
+  display: block;
+  width: 100%;
+}
+
+.note {
+  font-size: 26px;
+  line-height: 1.5;
+}
+
+.rule {
+  flex: 1;
+  height: 3px;
+  background: currentcolor;
+}
+
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--free);
+}
+
+.dark .dot {
+  background: var(--free-on-dark);
+}

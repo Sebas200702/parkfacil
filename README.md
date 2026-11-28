@@ -1,104 +1,200 @@
-# ParkFácil
+<!--
+  The poster-style panels in this README are images in docs/readme/. They are drawn with the app's own
+  design system (tokens, fonts, Lucide icons, bay plan, ticket) by tools/readme-assets.
+  To change one, edit its page in tools/readme-assets/pages and run:
+    node tools/readme-assets/render.mjs
+-->
 
-Plataforma SaaS multi-tenant de monitoreo, tarifas y reservas de parqueaderos.
-Proyecto del curso Buenas Prácticas de Desarrollo de Software.
+<h1 align="center">
+  <a href="https://parkfacil.app"><img src="docs/readme/hero.png" width="100%" alt="ParkFácil. Arrive with your spot held. Live parking availability in Bogotá with a 15-minute hold."></a>
+</h1>
 
-**App publicada:** <https://parkfacil.app>
+<p align="center">
+  <a href="https://parkfacil.app"><img src="docs/readme/btn-live.png" height="48" alt="Live app"></a>
+  <a href="#getting-started"><img src="docs/readme/btn-start.png" height="48" alt="Get started"></a>
+  <a href="docs/arquitectura.md"><img src="docs/readme/btn-architecture.png" height="48" alt="Architecture"></a>
+  <a href="docs/api.md"><img src="docs/readme/btn-api.png" height="48" alt="API"></a>
+  <a href="docs/despliegue.md"><img src="docs/readme/btn-deploy.png" height="48" alt="Deploy"></a>
+</p>
 
-| Carpeta            | Contenido                                |
-| ------------------ | ---------------------------------------- |
-| `apps/web`         | Frontend React (conductor y panel admin) |
-| `services/api`     | Lambdas en TypeScript                    |
-| `infra`            | Plantilla AWS SAM                        |
-| `tools/sensor-sim` | Simulador de sensores                    |
-| `tools/seed`       | Datos de prueba                          |
-| `docs`             | Contrato de la API y guías               |
+<p align="center">
+  <a href="https://github.com/Sebas200702/parkfacil/actions/workflows/ci.yml"><img src="https://github.com/Sebas200702/parkfacil/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+</p>
 
-## Capturas
+**ParkFácil** is a multi-tenant SaaS platform for live parking availability, rates and reservations.
+Drivers see which lots have room, hold a spot for 15 minutes and walk in with a ticket. Lot
+operators watch occupancy in real time and manage their own rates. A held spot that nobody claims
+frees itself.
 
-Tomadas con los datos de demostración (sin `NEXT_PUBLIC_API_URL`), en escritorio (1280 px) y teléfono (375 a 390 px).
+It is a course project for *Software Development Best Practices* (Buenas Prácticas de Desarrollo de Software).
 
-| Landing | Detalle con reserva activa |
+> **Language note.** The product, its screens and the long-form documents in `docs/` are in
+> Colombian Spanish, because that is who the app is for. This README, the code, the commits and the
+> pull requests are in English.
+
+<p align="center">
+  <img src="docs/readme/moves.png" width="100%" alt="Three moves. One: see where there is room, because the map marks every lot with its free spots for cars and motorbikes. Two: hold yours, because you see the rate first and one tap puts the spot in your name. Three: arrive in 15 minutes, because a countdown shows what is left and the spot frees itself if you do not make it.">
+</p>
+
+<p align="center">
+  <img src="docs/readme/plan.png" width="100%" alt="The plan. A parking lot drawn from above with cars and motorbikes in their bays: five spots free out of twelve. An empty bay is a free spot. Sensors report each entry and exit and the drawing changes by itself. Bays are marked free, held or taken.">
+</p>
+
+<p align="center">
+  <img src="docs/readme/screens.png" width="100%" alt="On screen. Real captures with the demo data: the landing page and a lot detail with a held spot on desktop, and the map and My reservations on a phone. The app is phone first, from 375 px.">
+</p>
+
+<h2 id="accessibility" align="center">
+  <img src="docs/readme/head-access.png" width="100%" alt="Built for everyone">
+</h2>
+
+<p align="center">
+  <img src="docs/readme/access.png" width="100%" alt="Accessibility checklist: small screens, touch targets, keyboard, focus after an action, screen readers, not color alone, contrast, tab titles, reduced motion and language. Details in the table below.">
+</p>
+
+<details>
+<summary>The same checklist as text</summary>
+
+| Area | How it is met |
 | --- | --- |
-| ![Landing: titular "Llega con el cupo apartado" y botón Buscar cupo](docs/capturas/landing.jpg) | ![Detalle de Parque 93 con el tiquete, el contador de 15 minutos y el plano de bahías](docs/capturas/detalle-reserva.jpg) |
+| Small screens | No horizontal scrolling from 375 px on the landing, sign-in, sign-up, map, detail and My reservations screens |
+| Touch targets | Buttons are 48 px tall. Links and map controls are at least 44 px |
+| Keyboard | Everything is reachable with Tab, focus is always visible, and "Skip to content" is the first element on every page |
+| Focus after an action | After reserving or cancelling, focus moves to the ticket or the notice instead of jumping back to the top |
+| Screen readers | The countdown is announced once a minute, not every second. Notices use `role="status"` or `role="alert"` |
+| Not color alone | Every state (free, held, taken, fulfilled, expired, cancelled) has its own icon or text |
+| Contrast | Text has a contrast ratio of 4.5:1 or more. Yellow is never used as text on a light background |
+| Tab titles | Every screen has its own, such as "Mis reservas · ParkFácil" |
+| Motion | Animations are switched off with `prefers-reduced-motion` |
+| Language | `lang="es"` on the document |
 
-| Mapa en el teléfono | Mis reservas en el teléfono |
-| --- | --- |
-| <img src="docs/capturas/mapa-movil.jpg" alt="Mapa con las placas P y la lista de parqueaderos con sus cupos" width="280"> | <img src="docs/capturas/mis-reservas-movil.jpg" alt="Mis reservas: tiquete con el tiempo que queda y botón Cancelar reserva" width="280"> |
+**How it was checked:** a keyboard walkthrough, reading the accessibility tree, and a scripted audit in
+the browser (overflow, touch target size, accessible names, field labels, heading order and contrast)
+on every screen at 375 px. It has **not** been tested with a real screen reader or on a physical phone.
 
-## Móvil y accesibilidad
+</details>
 
-El frontend del conductor se diseña primero para el teléfono y se revisó contra WCAG 2.1 nivel AA.
+<h2 id="architecture" align="center">
+  <img src="docs/readme/head-architecture.png" width="100%" alt="Under the hood">
+</h2>
 
-| Qué | Cómo se cumple |
-| --- | --- |
-| Pantallas pequeñas | Sin desplazamiento horizontal desde 375 px en landing, inicio de sesión, registro, mapa, detalle y Mis reservas |
-| Zonas táctiles | Botones de 48 px de alto; enlaces y controles del mapa de 44 px como mínimo |
-| Teclado | Todo se alcanza con Tab; el foco siempre se ve; "Saltar al contenido" es el primer elemento de cada página |
-| Foco tras una acción | Al reservar o cancelar, el foco pasa al tiquete o al aviso; no vuelve al inicio de la página |
-| Lector de pantalla | El contador se anuncia una vez por minuto, no cada segundo; los avisos usan `role="status"` o `role="alert"` |
-| Sin depender del color | Cada estado (libre, reservado, ocupado, cumplida, vencida, cancelada) lleva icono o texto propio |
-| Contraste | Texto con contraste de 4.5:1 o más; el amarillo nunca se usa como color de texto sobre fondo claro |
-| Título de la pestaña | Cada pantalla tiene el suyo: "Mis reservas · ParkFácil", "Parque 93 · ParkFácil" |
-| Movimiento | Las animaciones se apagan con `prefers-reduced-motion` |
-| Idioma | `lang="es"` en el documento |
+<p align="center">
+  <img src="docs/readme/architecture.png" width="100%" alt="Architecture, left to right. Who: drivers use the web app, admins use the lot panel, sensors report free or taken. Edge: Cloudflare serves parkfacil.app with DNS and HTTPS in front of an S3 static site, Cognito handles sign-in, IoT Core is the MQTT broker. Compute: API Gateway with a JWT authorizer calls 13 TypeScript Lambda functions. Data: a single multi-tenant DynamoDB table, EventBridge Scheduler to expire a hold at 15 minutes, and SES for confirmation emails. Everything runs in us-east-1.">
+</p>
 
-Cómo se revisó: recorrido con teclado, lectura del árbol de accesibilidad y una auditoría por script
-en el navegador (desbordes, tamaño de las zonas táctiles, nombres accesibles, etiquetas de los
-campos, orden de los encabezados y contraste) en cada pantalla a 375 px. No se probó con un lector
-de pantalla real ni en un teléfono físico.
+<p align="center">
+  <img src="docs/readme/stack.png" width="100%" alt="Stack. Frontend: Next.js 16 static export, React 19, Tailwind CSS 4, Leaflet, Lucide. Backend: TypeScript on Lambda, Zod, esbuild. Data: DynamoDB single table and AWS IoT Core. Auth: Amazon Cognito with email and password and Google through the Hosted UI. Infrastructure: AWS SAM and CloudFormation, S3 with Cloudflare, EventBridge Scheduler. Quality: Biome, tsc, Vitest for unit and integration tests, GitHub Actions.">
+</p>
 
-## Getting Started
+The detailed diagram, the data model and the decisions behind them are in
+[`docs/arquitectura.md`](docs/arquitectura.md).
 
-### Requisitos previos
-- **Node.js** 22 o superior (verificado en `.nvmrc`) y **npm** 10+
-- **Git** configurado con acceso de colaborador al repositorio
-- **Docker** (opcional, para ejecutar DynamoDB Local en las pruebas de integración)
-- **AWS CLI** y **AWS SAM CLI** (para despliegue de infraestructura en AWS)
+<h2 id="getting-started" align="center">
+  <img src="docs/readme/start.png" width="100%" alt="Three commands and you are parked. Local, demo data, on port 5173. No AWS account and no keys.">
+</h2>
 
-### Instalación y ejecución local contra el Learner Lab
-1. Clonar el repositorio e instalar las dependencias desde la raíz:
-   ```bash
-   git clone https://github.com/Sebas200702/parkfacil.git
-   cd parkfacil
-   npm install
-   ```
+<h3><img src="docs/readme/sub-prereq.png" width="100%" alt="01 Prerequisites"></h3>
 
-## Build, despliegue y dominio en producción
+- **Node.js** 22 or newer (see `.nvmrc`) and **npm** 10+
+- **Git**
+- **Docker** (optional): DynamoDB Local for the integration tests
+- **AWS CLI** v2 (only to deploy)
 
-- **Aplicación en producción:** <https://parkfacil.app>
-- **Distribución y DNS:** Amazon S3 (Static Website Hosting) + Cloudflare (DNS, caché perimetral y certificado SSL/TLS)
+<h3><img src="docs/readme/sub-demo.png" width="100%" alt="02 Run the frontend with demo data"></h3>
 
-### Construcción del frontend (exportación estática)
-El frontend en Next.js está configurado con `output: 'export'` en `apps/web/next.config.ts` para generar archivos estáticos compatibles con S3:
+No account or cloud resources needed. Without an API URL the app serves built-in demo parking lots.
 
 ```bash
-npm run build -w @parkfacil/web
+git clone https://github.com/Sebas200702/parkfacil.git
+cd parkfacil
+npm install
+npm run dev -w @parkfacil/web
 ```
-Esto genera el directorio `apps/web/out/` listo para sincronizarse con el bucket S3.
 
-### Despliegue en AWS Academy Learner Lab
-1. **Backend e infraestructura (AWS SAM):**
-   ```bash
-   cd infra
-   sam build
-   sam deploy --no-confirm-changeset
-   ```
-2. **Sincronización del frontend en S3:**
-   ```bash
-   aws s3 sync apps/web/out/ s3://<NOMBRE_BUCKET_FRONTEND> --delete
-   ```
+Open <http://localhost:5173>. The gallery of base components is at <http://localhost:5173/ui>.
 
-## Flujo operativo y estructura del sistema
+<h3><img src="docs/readme/sub-backend.png" width="100%" alt="03 Run it against the real backend"></h3>
 
-### Ciclo de operación
-1. **Conductor:** Consulta disponibilidad en tiempo real por parqueadero, crea una reserva activa por **15 minutos** y recibe un tiquete digital con código único.
-2. **Sensores IoT (MQTT):** Los dispositivos físicos (o el simulador `tools/sensor-sim`) publican eventos de ocupación por bahía hacia **AWS IoT Core**, actualizando el estado en **DynamoDB**.
-3. **Vencimiento automático:** Una regla programada en **Amazon EventBridge** ejecuta una función Lambda periódica que libera automáticamente las reservas no reclamadas tras cumplirse los 15 minutos.
-4. **Administrador:** Gestiona tarifas dinámicas, parqueaderos, bahías y métricas operativas desde el panel administrativo autenticado con **Amazon Cognito**.
+Copy the example environment file and fill it in with the outputs of the deployed stack
+(see [`docs/despliegue.md`](docs/despliegue.md), section 3):
 
-### Arquitectura y recursos AWS
-- **Frontend estático y dominio:** Amazon S3 (Static Website Hosting) + Cloudflare (DNS, HTTPS y caché perimetral) en <https://parkfacil.app>.
-- **API y cómputo:** Amazon API Gateway (HTTP API) + AWS Lambda (Node.js 22 / TypeScript).
-- **Persistencia y autenticación:** Amazon DynamoDB (diseño single-table con bloqueo optimista para evitar doble reserva) + Amazon Cognito User Pools.
-- **Telemetría y tareas programadas:** AWS IoT Core + Amazon EventBridge. 
+```bash
+cp apps/web/.env.example apps/web/.env.local
+```
+
+| Variable | Stack output | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | `ApiUrl` | Use `/api` locally together with `API_PROXY_TARGET` |
+| `API_PROXY_TARGET` | `ApiUrl` | Development only. Proxies `/api` to avoid CORS |
+| `NEXT_PUBLIC_COGNITO_USER_POOL_ID` | `UserPoolId` | Without it, no sign-in is required |
+| `NEXT_PUBLIC_COGNITO_CLIENT_ID` | `UserPoolClientId` | |
+| `NEXT_PUBLIC_COGNITO_DOMAIN` | `CognitoDomain` | Needed for "Continue with Google" |
+
+These are public identifiers, not secrets. Demo users are listed in [`docs/despliegue.md`](docs/despliegue.md).
+
+<h3><img src="docs/readme/sub-scripts.png" width="100%" alt="04 Scripts"></h3>
+
+Run these from the repository root.
+
+| Command | What it does |
+| --- | --- |
+| `npm run lint` | Biome check on the whole repository |
+| `npm run format` | Biome check with automatic fixes |
+| `npm run typecheck` | `tsc` in every workspace |
+| `npm test` | Unit tests (Vitest) |
+| `npm run db:local` | Starts DynamoDB Local in Docker on port 8000 |
+| `npm run test:int` | Integration tests. Needs `DYNAMODB_ENDPOINT=http://localhost:8000` |
+| `npm run test:e2e -w @parkfacil/web` | Playwright test of the landing, sign-in and reserve flow. Needs `npx playwright install chromium` once |
+| `npm run build` | Builds the frontend (`apps/web/out`) and bundles the Lambdas |
+| `npm run emulator:start`, `emulator:deploy`, `emulator:smoke` | Try the whole stack locally in AWS Emulator |
+
+<h3><img src="docs/readme/sub-ci.png" width="100%" alt="05 CI and deployment"></h3>
+
+- **CI** ([`ci.yml`](.github/workflows/ci.yml)) runs on every pull request and on pushes to `main`:
+  lint, `cfn-lint` on the template, typecheck, unit tests, integration tests against DynamoDB Local,
+  the Playwright reservation flow, and build.
+- **Deploy** ([`deploy.yml`](.github/workflows/deploy.yml)) runs after each merge to `main`. It
+  deploys the CloudFormation stack, builds the frontend with the stack outputs and syncs it to S3.
+- The site is a static export served from S3 behind Cloudflare. The full steps for the AWS Academy
+  Learner Lab, the custom domain and Google sign-in are in [`docs/despliegue.md`](docs/despliegue.md).
+
+<h2 id="repository-layout" align="center">
+  <img src="docs/readme/head-directory.png" width="100%" alt="The repo layout">
+</h2>
+
+<p align="center">
+  <img src="docs/readme/directory.png" width="100%" alt="Repository directory. apps/web: Next.js frontend with the landing, driver app, admin panel and the /ui gallery. services/api: Lambda handlers, domain logic and the seed, sensor-sim and smoke scripts. infra: AWS SAM template. tools/emulator: scripts to deploy and smoke-test the stack in AWS Emulator. docs: API contract, architecture, deployment, user manual and screenshots. odd/tasks: task log for the backend MVP.">
+</p>
+
+<h2 id="documentation" align="center">
+  <img src="docs/readme/head-docs.png" width="100%" alt="Read more">
+</h2>
+
+| Document | Language | About |
+| --- | --- | --- |
+| [`docs/sistema-de-diseno.md`](docs/sistema-de-diseno.md) | Spanish | The design system behind the app and this README |
+| [`docs/arquitectura.md`](docs/arquitectura.md) | Spanish | Architecture, diagram and decisions |
+| [`docs/api.md`](docs/api.md), [`docs/openapi.yaml`](docs/openapi.yaml) | Spanish | API contract |
+| [`docs/despliegue.md`](docs/despliegue.md) | Spanish | Emulator, Learner Lab, domain and Google sign-in |
+| [`docs/ci-cd.md`](docs/ci-cd.md) | Spanish | The CI and deploy pipelines in detail |
+| [`docs/guia-sensores.md`](docs/guia-sensores.md) | Spanish | How to simulate sensors over MQTT or HTTP and check the result |
+| [`docs/checklist-qa.md`](docs/checklist-qa.md) | Spanish | Automated and manual QA checklist |
+| [`docs/manual-usuario.md`](docs/manual-usuario.md) | Spanish | User manual for drivers and admins |
+| [`docs/uso-de-ia.md`](docs/uso-de-ia.md) | Spanish | How AI was used and how it was verified |
+
+<h2 id="contributing" align="center">
+  <img src="docs/readme/head-contribute.png" width="100%" alt="Park with us">
+</h2>
+
+- Work on a `feature/*` branch and open a pull request against `main`. Keep pull requests small
+  (around 400 lines) and follow the [pull request template](.github/pull_request_template.md).
+- Write commits and pull requests in English, as small atomic
+  [Conventional Commits](https://www.conventionalcommits.org) (`feat(web): ...`, `fix(api): ...`).
+- Every change needs green CI and a review by another team member before it is merged.
+- Never commit AWS credentials. Lab credentials only go in GitHub secrets.
+- The pictures in this README come from [`tools/readme-assets`](tools/readme-assets). Edit the page
+  there and run `node tools/readme-assets/render.mjs` to redraw them (needs Chrome and `npm install`).
+
+<p align="center">
+  <img src="docs/readme/footer.png" width="100%" alt="Your spot is waiting. Just arrive. ParkFácil, Bogotá, Colombia. Course project for Software Development Best Practices.">
+</p>
